@@ -41,6 +41,12 @@ public class BanterBox extends ListenerAdapter {
 		if (command.startsWith("!presents ") || command.equals("!presents")) {
 			event.respond("(ノಠ益ಠ)ノ彡┻━┻");
 
+		} else if (command.startsWith("!preddence ") || command.equals("!preddence")) {
+			event.respond("THIS IS A POEM ABOUT PREDD:");
+			event.respond("");
+			event.respond("winter's cold wind cuts /");
+			event.respond("we may perish ere spring comes /");
+			event.respond("i'm wearing clown shoes");
 		} else if (command.startsWith("!pokemon") || command.equals("!pokemon")) {
 			event.respond("http://images.wikia.com/pokemontowerdefense/images/9/96/Pokemon-list.png");
 		

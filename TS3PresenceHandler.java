@@ -4,23 +4,29 @@ import org.pircbotx.User;
 import java.util.HashMap;
 import java.util.Scanner;
 import org.pircbotx.Colors;
+import java.util.Properties;
+import com.github.theholywaffle.teamspeak3.TS3Api;
+import com.github.theholywaffle.teamspeak3.TS3Config;
+import com.github.theholywaffle.teamspeak3.TS3Query;
+import com.github.theholywaffle.teamspeak3.api.wrapper.Client;
+import java.util.logging.Level;
 
 
-public class PresenceHandler extends ListenerAdapter {
+public class TS3PresenceHandler extends ListenerAdapter {
 
 
 	private PermissionsManager pm;
 	private Scanner scanner;
-	private PresenceEngine pe;
+	private TS3PresenceEngine pe;
 	private Thread peThread;
-	private String soeapikey;
+	private Properties props;
 
-	public PresenceHandler(PresenceEngine pe, Thread peThread, String soeapikey) {
+	public TS3PresenceHandler(TS3PresenceEngine pe, Thread peThread, Properties props) {
 		super();
 		this.pe = pe;
 		this.peThread = peThread;
 		this.pm = PermissionsManager.getInstance();
-		this.soeapikey = soeapikey;
+		this.props = props;
 		System.out.println("PresenceHandler Initialized.");
 	}
 
@@ -70,24 +76,6 @@ public class PresenceHandler extends ListenerAdapter {
 					break;
 					//
 					//
-					case "outfit": if (!scanner.hasNext()){
-						event.respond("'add' [outfitalias] or 'purge'.");
-					} else {
-						String outfitCommand = scanner.next();
-						if (outfitCommand.equals("purge")) {
-							pe.purgeOutfits();
-							event.respond("Outfit list purged.");
-						} else if (outfitCommand.equals("add")) {
-							String addme = rawcommand.substring(21);
-							event.respond("I added '"+addme+"' to the auto-presence API pull.  Note that those are case sensitive.");
-							pe.addOutfit(addme);
-						} else {
-							event.respond("I am so high right now . . .");
-						}
-
-					}
-					break;
-					//
 					case "squelch": if (!scanner.hasNext()){
 						event.respond("On or off?");
 					} else {
@@ -120,33 +108,40 @@ public class PresenceHandler extends ListenerAdapter {
 		}
 		
 		if (command.equals("!presence")) {
-			
-			HashMap<String,Boolean> hm = null;
-			try {
-				hm = PresenceChecker.getPresence(pe.getOutfits().get(0), pe.getTimeout(), soeapikey);
-			} catch (Exception e) {
-				event.respond("Something real bad wrong happened when I checked in with SOE.  So, no.");
-				return;
+
+			HashMap<String,String> hm = new HashMap<String, String>();
+			String ts3User = props.getProperty("ts3_user");		
+			String ts3Pass = props.getProperty("ts3_pass");		
+			String ts3Server = props.getProperty("ts3_server");		
+			String botNick = props.getProperty("botnick");		
+
+			if (ts3User.equals("") || ts3Pass.equals("") || ts3Server.equals("")) {
+				throw new IllegalArgumentException("Missing user, pass, or server property.");
 			}
-			
-			String onlinenames = "";
-			int count = 0;
-			for (String key : hm.keySet()) {
-				if (hm.get(key)) {
-					//System.out.println("concat'ing key: "+key);
-					onlinenames=onlinenames.concat(key+" ");
-					count++;
-					//System.out.println("onlinenames is now "+onlinenames);
-				}
+
+
+			TS3Config config = new TS3Config();
+			config.setHost(ts3Server);
+			config.setDebugLevel(Level.ALL);
+			config.setLoginCredentials(ts3User, ts3Pass);
+	
+			TS3Query query = new TS3Query(config);
+			query.connect();
+	
+			TS3Api api = query.getApi();
+			api.selectVirtualServerById(1);
+			api.setNickname(botNick);
+
+			for (Client c : api.getClients()) {
+				hm.put(c.getNickname(), api.getChannelInfo(c.getChannelId()).getName());
 			}
-			if (onlinenames.equals("")) {
-				event.respond("No one is online.  Not a sausage.");
-			} else if (count > 20) {
-				event.respond("There are "+count+" players online.  I shan't bore you with the details.");
-			} else {
-				event.respond(onlinenames + Colors.GREEN +"online");
-			}
+			event.respond("Hash dump: "+ hm); 
+			api.quit();
+			query.exit();
+			System.out.println("I AM LEAVING THIS FUCKING BLOCK");
+
 		}
+			
 	}
 }
 

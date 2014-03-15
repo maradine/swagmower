@@ -6,7 +6,7 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 
-public class PS2Bot extends ListenerAdapter {
+public class Swagmower extends ListenerAdapter {
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -17,7 +17,7 @@ public class PS2Bot extends ListenerAdapter {
 		Properties props = new Properties();
 		FileInputStream fis = null;
 		try {
-			fis = new FileInputStream("ps2bot.properties");
+			fis = new FileInputStream("swagmower.properties");
 		} catch (IOException ioe) {
 			System.out.println("Can't find ps2bot.proprties in local directory.");
 			System.out.println("Wrting out example file and terminating.");

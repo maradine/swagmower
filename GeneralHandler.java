@@ -52,5 +52,9 @@ public class GeneralHandler extends ListenerAdapter {
 			}
 		}
 
+		if (token.startsWith("!oracle") || token.equals("!oracle")) {
+			event.respond("The Oracle of Death is now maintained by merl0 at #oracle, irc.planetside-universe.com.");
+		}
+
 	}
 }

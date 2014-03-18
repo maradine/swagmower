@@ -111,6 +111,8 @@ public class TS3PresenceEngine {
 			if (newChannel.equals(oldChannel)) {
 				return;
 			}
+		} else {
+			return;
 		}
 		presenceState.put(clientID, new PresenceState(nickname, newChannel));
 		if (!ignoreList.contains(nickname)) {

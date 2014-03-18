@@ -124,13 +124,17 @@ public class TS3PresenceHandler extends ListenerAdapter {
 		
 		if (command.equals("!presence")) {
 			if (pe.isOn()) {
-				HashMap<String,PresenceState> filtered = new HashMap<String,PresenceState>();
-				filtered.putAll(pe.getPresenceState());
+				String toPrint = "";
 				ArrayList<String> ignores = pe.getIgnoreList();
-				for (String nickname : ignores) {
-					filtered.remove(nickname);
+				for (PresenceState ps : pe.getPresenceState().values()) {
+					if (!ignores.contains(ps.nickname)) {
+						if (!toPrint.equals("")) {
+							toPrint += ", ";
+						}
+						toPrint += ps.nickname + "=" + ps.channel;
+					}
 				}
-				event.respond("Hash dump: "+ filtered); 
+				event.respond("Users: " + toPrint); 
 			} else {
 				event.respond("Presence engine wasn't started, so I have no state to report.");
 			}

@@ -1,10 +1,8 @@
 public class PresenceState {
-	public int clientID;
 	public String channel;
 	public String nickname;
 
-	public PresenceState(int clientID, String nickname, String channel) {
-		this.clientID = clientID;
+	public PresenceState(String nickname, String channel) {
 		this.nickname = nickname;
 		this.channel = channel;
 	}

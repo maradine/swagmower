@@ -12,7 +12,7 @@ public class TS3ListenerImpl implements TS3Listener {
 	}
 
 	public void onClientMoved(ClientMovedEvent e) {
-		this.parent.clientMoved(e.getClientId());
+		this.parent.clientMoved(e.getClientId(), e.getClientTargetId());
 	}
 
 	public void onClientLeave(ClientLeaveEvent e) {

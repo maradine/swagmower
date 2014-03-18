@@ -19,7 +19,7 @@ public class Swagmower extends ListenerAdapter {
 		try {
 			fis = new FileInputStream("swagmower.properties");
 		} catch (IOException ioe) {
-			System.out.println("Can't find ps2bot.proprties in local directory.");
+			System.out.println("Can't find swagmower.proprties in local directory.");
 			System.out.println("Wrting out example file and terminating.");
 			System.out.println("Modify this file and re-run.");
 			

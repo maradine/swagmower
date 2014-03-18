@@ -30,7 +30,6 @@ public class Swagmower extends ListenerAdapter {
 				props.setProperty("nickpass", "");
 				props.setProperty("ownernick", "");
 				props.setProperty("channelpass", "");
-				props.setProperty("soeapikey", "");
 				props.setProperty("ts3_user", "");
 				props.setProperty("ts3_pass", "");
 				props.setProperty("ts3_server", "");
@@ -98,11 +97,9 @@ public class Swagmower extends ListenerAdapter {
 
 		//set up presence engine
 		TS3PresenceEngine pe = new TS3PresenceEngine(bot, ircChannel, props);
-		Thread pt = new Thread(pe, "pt");
-		pt.start();
 
 		//link presence handler
-		bot.getListenerManager().addListener(new TS3PresenceHandler(pe, pt, props));
+		bot.getListenerManager().addListener(new TS3PresenceHandler(pe, props));
 
 		//link general command handler
 		bot.getListenerManager().addListener(new GeneralHandler(bot));

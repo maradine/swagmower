@@ -2,40 +2,46 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.pircbotx.PircBotX;
-import org.pircbotx.Colors;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Arrays;
+import java.util.logging.Level;
 
-public class TS3PresenceEngine implements Runnable {
+import org.pircbotx.PircBotX;
+import org.pircbotx.Colors;
+import com.github.theholywaffle.teamspeak3.TS3Api;
+import com.github.theholywaffle.teamspeak3.TS3Config;
+import com.github.theholywaffle.teamspeak3.TS3Query;
+import com.github.theholywaffle.teamspeak3.api.wrapper.Client;
+import com.github.theholywaffle.teamspeak3.api.wrapper.ClientInfo;
+import com.github.theholywaffle.teamspeak3.api.event.TS3EventType;
 
-	private HashMap<String,String> presenceState;
+public class TS3PresenceEngine {
+
+	private HashMap<String,PresenceState> presenceState;
 	private PircBotX bot;
 	private String channel;
 	private boolean onSwitch;
-	private long interval;
-	private long backoff;
-	private int timeout;
 	private boolean squelch;
 	private Properties props;
 	private ArrayList<String> ignoreList;
+	private TS3Query query;
+	private TS3Api api;
 	
 	public TS3PresenceEngine(PircBotX bot, String channel, Properties props) {
-		presenceState = new HashMap<String,String>();
+		presenceState = new HashMap<String,PresenceState>();
 		this.bot = bot;
 		this.channel = channel;
 		this.props = props;
 		onSwitch = false;
 		squelch = true;
-		interval = 60000L;
-		backoff = 0L;
-		timeout = 10000;
+		query = null;
+		api = null;
 		initIgnores();
 	}
 
 	
-	public HashMap<String,String> getPresenceState() {
+	public HashMap<String,PresenceState> getPresenceState() {
 		return presenceState;
 	}
 	
@@ -60,20 +66,9 @@ public class TS3PresenceEngine implements Runnable {
 	public List<String> getIgnores() {
 		return ignoreList;
 	}
-	
-	public void setInterval(long set) {
-		interval = set;
-	}
-
-	public void setTimeout(int set) {
-		timeout = set;
-	}
-	
-	public int getTimeout() {
-		return timeout;
-	}
 
 	public void turnOn() {
+		this.connect();
 		onSwitch = true;
 	}
 
@@ -86,68 +81,93 @@ public class TS3PresenceEngine implements Runnable {
 	}
 
 	public void turnOff() {
+		this.disconnect();
 		onSwitch = false;
 	}
 
 	public Boolean isOn() {
+		this.connect();
 		return onSwitch;
 	}
 
-	public void run() {
-		while (true) {
-			try {
-				Thread.sleep(interval+backoff);
-				if (onSwitch) {
-					
-					HashMap<String,String> hm = TS3PresenceChecker.getPresence(timeout, props);	
-					
-					//deal with people we already know
-					for (String user : presenceState.keySet()) {
-						if (!hm.containsKey(user) && !ignoreList.contains(user)) {
-							//notify user has quit TS3
-							bot.sendMessage(channel, "["+user+"]"+" has "+Colors.RED+"QUIT"+Colors.NORMAL+" Teamspeak.");
-						} else {
-							String oldChannel = presenceState.get(user);
-							String currentChannel = hm.get(user);
-							if (!oldChannel.equals(currentChannel) && !ignoreList.contains(user)) {
-								//say that user has moved to new channel
-								bot.sendMessage(channel, "["+user+"]"+" has "+Colors.CYAN+"MOVED"+Colors.NORMAL+" to Channel " +currentChannel+".");
-							}
-						}
-					}
-					//deal with new people
-					for (String user : hm.keySet()) {
-						if (!presenceState.containsKey(user) && !ignoreList.contains(user)) {
-							//new user has joined
-							bot.sendMessage(channel, "["+user+"]"+" has "+Colors.GREEN+"JOINED"+Colors.NORMAL+" Teamspeak in channel "+hm.get(user)+".");
-						}
-					}
-					presenceState = hm;
-						
-				}
-
-			} catch (InterruptedException e) {
-				bot.sendMessage(channel, "Interval timer interrupted - resetting backoff and restarting clock.");
-			} catch (IOException e) {
-				if (backoff==0L) {
-					backoff = 300000L;
-					bot.sendMessage(channel, "TS3 just choked over an update check - sorry!  Backing off a bit.");
-					System.out.println("API Failure - backoff is now "+backoff);
-				} else if (backoff > 3600000L) {
-					bot.sendMessage(channel, "Enough API calls have failed that I'm shutting down the presence engine.  Please contact my owner.");
-					System.out.println("API Failure");
-					System.out.println("Shutting down presence and resetting timeouts.");
-					this.turnOff();
-					backoff=0L;
-				} else {
-					backoff = backoff*2;
-					bot.sendMessage(channel, "TS3 choked again.  Backing off further.");
-					System.out.println("API Failure - backoff is now "+backoff);
-				}
-			}
+	public void clientJoin(int clientID) {
+		ClientInfo ci = this.api.getClientInfo(clientID);
+		String nickname = ci.getNickname();
+		String newChannel = this.api.getChannelInfo(ci.getChannelId()).getName();
+		presenceState.put(nickname, new PresenceState(clientID, nickname, newChannel));
+		if (!ignoreList.contains(nickname)) {
+			bot.sendMessage(channel, "["+nickname+"] has "+Colors.GREEN+"JOINED"+Colors.NORMAL+" to Channel "+newChannel+".");
 		}
 	}
 
-	
-	
+	public void clientMoved(int clientID) {
+		ClientInfo ci = this.api.getClientInfo(clientID);
+		String nickname = ci.getNickname();
+		String newChannel = this.api.getChannelInfo(ci.getChannelId()).getName();
+		if (presenceState.containsKey(nickname)) {
+			String oldChannel = presenceState.get(nickname).channel;
+			if (newChannel.equals(oldChannel)) {
+				return;
+			}
+		}
+		presenceState.put(nickname, new PresenceState(clientID, nickname, newChannel));
+		if (!ignoreList.contains(nickname)) {
+			bot.sendMessage(channel, "["+nickname+"] has "+Colors.CYAN+"MOVED"+Colors.NORMAL+" to Channel "+newChannel+".");
+		}
+	}
+
+	public void clientLeft(int clientID) {
+		String nickname = "";
+		for (PresenceState ps : presenceState.values()) {
+			if (ps.clientID == clientID) {
+				nickname = ps.nickname;
+			}
+		}
+		presenceState.remove(nickname);
+		if (!ignoreList.contains(nickname)) {
+			bot.sendMessage(channel, "["+nickname+"] has "+Colors.RED+"QUIT"+Colors.NORMAL+" Teamspeak.");
+		}
+	}
+
+	public void connect() {
+		String ts3User = props.getProperty("ts3_user");
+		String ts3Pass = props.getProperty("ts3_pass");
+		String ts3Server = props.getProperty("ts3_server");
+		String botNick = props.getProperty("botnick");
+
+		if (ts3User.equals("") || ts3Pass.equals("") || ts3Server.equals("")) {
+			throw new IllegalArgumentException("Missing user, pass, or server property.");
+		}
+
+		TS3Config config = new TS3Config();
+		config.setHost(ts3Server);
+		config.setDebugLevel(Level.WARNING);
+		config.setLoginCredentials(ts3User, ts3Pass);
+
+		this.query = new TS3Query(config);
+		this.query.connect();
+
+		this.api = query.getApi();
+		api.selectVirtualServerById(1);
+		api.setNickname(botNick);
+
+		//Populate initial state
+		this.presenceState.clear();
+		for (Client c : api.getClients()) {
+			presenceState.put(c.getNickname(), new PresenceState(c.getId(),
+			    c.getNickname(),
+			    api.getChannelInfo(c.getChannelId()).getName()));
+		}
+
+		api.registerEvent(TS3EventType.CHANNEL, 0);
+		api.addTS3Listeners(new TS3ListenerImpl(this));
+	}
+
+	public void disconnect() {
+		this.api.quit();
+		this.query.exit();
+		this.api = null;
+		this.query = null;
+		this.presenceState.clear();
+	}
 }

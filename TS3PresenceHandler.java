@@ -22,13 +22,11 @@ public class TS3PresenceHandler extends ListenerAdapter {
 	private PermissionsManager pm;
 	private Scanner scanner;
 	private TS3PresenceEngine pe;
-	private Thread peThread;
 	private Properties props;
 
-	public TS3PresenceHandler(TS3PresenceEngine pe, Thread peThread, Properties props) {
+	public TS3PresenceHandler(TS3PresenceEngine pe,Properties props) {
 		super();
 		this.pe = pe;
-		this.peThread = peThread;
 		this.pm = PermissionsManager.getInstance();
 		this.props = props;
 		System.out.println("PresenceHandler Initialized.");
@@ -108,34 +106,6 @@ public class TS3PresenceHandler extends ListenerAdapter {
 					
 					break;
 					//
-					case "interval": if (!scanner.hasNextLong()){
-						event.respond("Setting the interval requires a number, expressed in minutes.  Max 60.");
-					} else {
-						long rawlong = scanner.nextLong();
-						if (rawlong > 60 || rawlong < 1) {
-							event.respond("Setting the interval requires a number, expressed in minutes.  Max 60.");
-						} else {
-							event.respond("Interval set to "+rawlong+" minutes.");
-							pe.setInterval(rawlong*1000*60);
-							peThread.interrupt();
-						}
-					}
-					break;
-					//
-					//
-					case "timeout": if (!scanner.hasNextInt()){
-						event.respond("Setting the timeout requires a number, expressed in seconds.  Max 20.");
-					} else {
-						int rawint = scanner.nextInt();
-						if (rawint > 20 || rawint < 1) {
-							event.respond("Setting the timeout requires a number, expressed in seconds.  Max 20.");
-						} else {
-							event.respond("Timeout set to "+rawint+" seconds.");
-							pe.setTimeout(rawint*1000);
-						}
-					}
-					break;
-					//
 					//
 					case "on": pe.turnOn();
 					event.respond("Auto-presence turned ON.");
@@ -154,8 +124,13 @@ public class TS3PresenceHandler extends ListenerAdapter {
 		
 		if (command.equals("!presence")) {
 			if (pe.isOn()) {
-				HashMap<String,String> hm = pe.getPresenceState();
-				event.respond("Hash dump: "+ hm); 
+				HashMap<String,PresenceState> filtered = new HashMap<String,PresenceState>();
+				filtered.putAll(pe.getPresenceState());
+				ArrayList<String> ignores = pe.getIgnoreList();
+				for (String nickname : ignores) {
+					filtered.remove(nickname);
+				}
+				event.respond("Hash dump: "+ filtered); 
 			} else {
 				event.respond("Presence engine wasn't started, so I have no state to report.");
 			}

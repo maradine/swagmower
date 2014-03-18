@@ -58,13 +58,10 @@ public class TS3PresenceHandler extends ListenerAdapter {
 						if (token.equals("list")) {
 							event.respond("Current ignored nicknames: "+pe.getIgnoreList());
 						} else if (token.equals("add")) {
-							System.out.println("ADD TOKEN ACCEPTED");
 							if (!scanner.hasNext()) {
-								System.out.println("OOPS, NOTHING AFTER ADD TOKEN");
 								event.respond("Who am I adding?");
 							} else {
 								token = scanner.next().toLowerCase();
-								System.out.println("GOT ADD TOKEN "+token);
 								ArrayList<String> list = pe.getIgnoreList();
 								if (list.contains(token)) {
 									event.respond("Ignore list already contains "+ token +".");

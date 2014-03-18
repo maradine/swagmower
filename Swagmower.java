@@ -97,10 +97,6 @@ public class Swagmower extends ListenerAdapter {
 		bot.getListenerManager().addListener(new AnnouncementHandler(ae, at));
 
 		//set up presence engine
-		//String soeapikey = props.getProperty("soeapikey");
-		//PresenceEngine pe = new PresenceEngine(bot, ircChannel, soeapikey);
-		//Thread pt = new Thread(pe, "pt");
-		//pt.start();
 		TS3PresenceEngine pe = new TS3PresenceEngine(bot, ircChannel, props);
 		Thread pt = new Thread(pe, "pt");
 		pt.start();

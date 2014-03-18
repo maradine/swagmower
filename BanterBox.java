@@ -41,7 +41,7 @@ public class BanterBox extends ListenerAdapter {
 		if (command.startsWith("!presents ") || command.equals("!presents")) {
 			event.respond("(ノಠ益ಠ)ノ彡┻━┻");
 
-		} else if (command.startsWith("!preddance ") || command.equals("!preddance" || command.startsWith("!preddence ") || command.equals("!preddence")) {
+		} else if (command.startsWith("!preddance ") || command.equals("!preddance") || command.startsWith("!preddence ") || command.equals("!preddence")) {
 			event.respond("THIS IS A POEM ABOUT PREDD:");
 			event.respond("");
 			event.respond("winter's cold wind cuts /");

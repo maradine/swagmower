@@ -24,7 +24,7 @@ public class TS3PresenceChecker {
 
 		TS3Config config = new TS3Config();
 		config.setHost(ts3Server);
-		config.setDebugLevel(Level.ALL);
+		config.setDebugLevel(Level.WARNING);
 		config.setLoginCredentials(ts3User, ts3Pass);
 	
 		TS3Query query = new TS3Query(config);

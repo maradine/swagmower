@@ -35,7 +35,7 @@ public class Swagmower extends ListenerAdapter {
 				props.setProperty("ts3_pass", "");
 				props.setProperty("ts3_server", "");
 		
-				props.store(new FileOutputStream("ps2bot.properties"), null);
+				props.store(new FileOutputStream("swagmower.properties"), null);
 			} catch (IOException ioe2) {
 				System.out.println("There was an error writing to the filesystem.");
 			}

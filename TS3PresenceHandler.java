@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Date;
 import org.pircbotx.Colors;
 import java.util.Properties;
 import com.github.theholywaffle.teamspeak3.TS3Api;
@@ -23,12 +24,14 @@ public class TS3PresenceHandler extends ListenerAdapter {
 	private Scanner scanner;
 	private TS3PresenceEngine pe;
 	private Properties props;
+	private Date lastRefresh;
 
 	public TS3PresenceHandler(TS3PresenceEngine pe,Properties props) {
 		super();
 		this.pe = pe;
 		this.pm = PermissionsManager.getInstance();
 		this.props = props;
+		this.lastRefresh = new Date();
 		System.out.println("PresenceHandler Initialized.");
 	}
 
@@ -124,10 +127,16 @@ public class TS3PresenceHandler extends ListenerAdapter {
 		
 		if (command.equals("!presence")) {
 			if (pe.isOn()) {
+				Date now = new Date();
+				//Force a refresh up to every minute due to API thread lols
+				if (now.getTime() - this.lastRefresh.getTime() > 60000) {
+					pe.refreshClients();
+					this.lastRefresh = now;
+				}
 				String toPrint = "";
 				ArrayList<String> ignores = pe.getIgnoreList();
 				for (PresenceState ps : pe.getPresenceState().values()) {
-					if (!ignores.contains(ps.nickname)) {
+					if (!ignores.contains(ps.nickname.toLowerCase())) {
 						if (!toPrint.equals("")) {
 							toPrint += ", ";
 						}

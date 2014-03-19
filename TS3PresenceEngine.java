@@ -93,13 +93,11 @@ public class TS3PresenceEngine {
 		return onSwitch;
 	}
 
-	public void clientJoin(int clientID) {
-		//System.out.println("CLIENT JOIN: " + clientID);
-		ClientInfo ci = this.api.getClientInfo(clientID);
-		String nickname = ci.getNickname();
-		String newChannel = this.api.getChannelInfo(ci.getChannelId()).getName();
+	public void clientJoin(int clientID, String nickname, int channelID) {
+		//System.out.println("CLIENT JOIN: " + clientID + " " + nickname + " " + channelID);
+		String newChannel = this.api.getChannelInfo(channelID).getName();
 		presenceState.put(clientID, new PresenceState(nickname, newChannel));
-		if (!ignoreList.contains(nickname)) {
+		if (!ignoreList.contains(nickname.toLowerCase())) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.GREEN+"JOINED"+Colors.NORMAL+" to Channel "+newChannel+".");
 		}
 	}
@@ -119,7 +117,7 @@ public class TS3PresenceEngine {
 			return;
 		}
 		presenceState.put(clientID, new PresenceState(nickname, newChannel));
-		if (!ignoreList.contains(nickname)) {
+		if (!ignoreList.contains(nickname.toLowerCase())) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.CYAN+"MOVED"+Colors.NORMAL+" to Channel "+newChannel+".");
 		}
 	}
@@ -131,8 +129,16 @@ public class TS3PresenceEngine {
 			nickname = presenceState.get(clientID).nickname;
 		}
 		presenceState.remove(nickname);
-		if (!ignoreList.contains(nickname)) {
+		if (!ignoreList.contains(nickname.toLowerCase())) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.RED+"QUIT"+Colors.NORMAL+" Teamspeak.");
+		}
+	}
+
+	public void refreshClients() {
+		this.presenceState.clear();
+		for (Client c : api.getClients()) {
+			presenceState.put(c.getId(), new PresenceState(c.getNickname(),
+			    api.getChannelInfo(c.getChannelId()).getName()));
 		}
 	}
 
@@ -159,11 +165,7 @@ public class TS3PresenceEngine {
 		api.setNickname(botNick);
 
 		//Populate initial state
-		this.presenceState.clear();
-		for (Client c : api.getClients()) {
-			presenceState.put(c.getId(), new PresenceState(c.getNickname(),
-			    api.getChannelInfo(c.getChannelId()).getName()));
-		}
+		this.refreshClients();
 
 		api.registerEvent(TS3EventType.CHANNEL, 0);
 		api.addTS3Listeners(new TS3ListenerImpl(this));

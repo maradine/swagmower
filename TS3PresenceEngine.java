@@ -68,7 +68,9 @@ public class TS3PresenceEngine {
 	}
 
 	public void turnOn() {
-		this.connect();
+		if (!onSwitch) {
+			this.connect();
+		}
 		onSwitch = true;
 	}
 
@@ -81,7 +83,9 @@ public class TS3PresenceEngine {
 	}
 
 	public void turnOff() {
-		this.disconnect();
+		if (onSwitch) {
+			this.disconnect();
+		}
 		onSwitch = false;
 	}
 

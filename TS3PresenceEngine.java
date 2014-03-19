@@ -18,7 +18,7 @@ import com.github.theholywaffle.teamspeak3.api.event.TS3EventType;
 
 public class TS3PresenceEngine {
 
-	private HashMap<String,PresenceState> presenceState;
+	private HashMap<Integer,PresenceState> presenceState;
 	private PircBotX bot;
 	private String channel;
 	private boolean onSwitch;
@@ -29,7 +29,7 @@ public class TS3PresenceEngine {
 	private TS3Api api;
 	
 	public TS3PresenceEngine(PircBotX bot, String channel, Properties props) {
-		presenceState = new HashMap<String,PresenceState>();
+		presenceState = new HashMap<Integer,PresenceState>();
 		this.bot = bot;
 		this.channel = channel;
 		this.props = props;
@@ -41,7 +41,7 @@ public class TS3PresenceEngine {
 	}
 
 	
-	public HashMap<String,PresenceState> getPresenceState() {
+	public HashMap<Integer,PresenceState> getPresenceState() {
 		return presenceState;
 	}
 	
@@ -68,7 +68,9 @@ public class TS3PresenceEngine {
 	}
 
 	public void turnOn() {
-		this.connect();
+		if (!onSwitch) {
+			this.connect();
+		}
 		onSwitch = true;
 	}
 
@@ -81,51 +83,62 @@ public class TS3PresenceEngine {
 	}
 
 	public void turnOff() {
-		this.disconnect();
+		if (onSwitch) {
+			this.disconnect();
+		}
 		onSwitch = false;
 	}
 
 	public Boolean isOn() {
-		this.connect();
 		return onSwitch;
 	}
 
-	public void clientJoin(int clientID) {
-		ClientInfo ci = this.api.getClientInfo(clientID);
-		String nickname = ci.getNickname();
-		String newChannel = this.api.getChannelInfo(ci.getChannelId()).getName();
-		presenceState.put(nickname, new PresenceState(clientID, nickname, newChannel));
-		if (!ignoreList.contains(nickname)) {
+	public void clientJoin(int clientID, String nickname, int channelID) {
+		//System.out.println("CLIENT JOIN: " + clientID + " " + nickname + " " + channelID);
+		String newChannel = this.api.getChannelInfo(channelID).getName();
+		presenceState.put(clientID, new PresenceState(nickname, newChannel));
+		if (!ignoreList.contains(nickname.toLowerCase())) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.GREEN+"JOINED"+Colors.NORMAL+" to Channel "+newChannel+".");
 		}
 	}
 
-	public void clientMoved(int clientID) {
-		ClientInfo ci = this.api.getClientInfo(clientID);
-		String nickname = ci.getNickname();
-		String newChannel = this.api.getChannelInfo(ci.getChannelId()).getName();
-		if (presenceState.containsKey(nickname)) {
-			String oldChannel = presenceState.get(nickname).channel;
+	public void clientMoved(int clientID, int channelID) {
+		//System.out.println("CLIENT MOVE: " + clientID + " " + channelID);
+		String nickname = "";
+		String newChannel = this.api.getChannelInfo(channelID).getName();
+		if (presenceState.containsKey(clientID)) {
+			PresenceState ps = presenceState.get(clientID);
+			nickname = ps.nickname;
+			String oldChannel = ps.channel;
 			if (newChannel.equals(oldChannel)) {
 				return;
 			}
+		} else {
+			return;
 		}
-		presenceState.put(nickname, new PresenceState(clientID, nickname, newChannel));
-		if (!ignoreList.contains(nickname)) {
+		presenceState.put(clientID, new PresenceState(nickname, newChannel));
+		if (!ignoreList.contains(nickname.toLowerCase())) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.CYAN+"MOVED"+Colors.NORMAL+" to Channel "+newChannel+".");
 		}
 	}
 
 	public void clientLeft(int clientID) {
+		//System.out.println("CLIENT LEAVE: " + clientID);
 		String nickname = "";
-		for (PresenceState ps : presenceState.values()) {
-			if (ps.clientID == clientID) {
-				nickname = ps.nickname;
-			}
+		if (presenceState.containsKey(clientID)) {
+			nickname = presenceState.get(clientID).nickname;
 		}
 		presenceState.remove(nickname);
-		if (!ignoreList.contains(nickname)) {
+		if (!ignoreList.contains(nickname.toLowerCase())) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.RED+"QUIT"+Colors.NORMAL+" Teamspeak.");
+		}
+	}
+
+	public void refreshClients() {
+		this.presenceState.clear();
+		for (Client c : api.getClients()) {
+			presenceState.put(c.getId(), new PresenceState(c.getNickname(),
+			    api.getChannelInfo(c.getChannelId()).getName()));
 		}
 	}
 
@@ -152,12 +165,7 @@ public class TS3PresenceEngine {
 		api.setNickname(botNick);
 
 		//Populate initial state
-		this.presenceState.clear();
-		for (Client c : api.getClients()) {
-			presenceState.put(c.getNickname(), new PresenceState(c.getId(),
-			    c.getNickname(),
-			    api.getChannelInfo(c.getChannelId()).getName()));
-		}
+		this.refreshClients();
 
 		api.registerEvent(TS3EventType.CHANNEL, 0);
 		api.addTS3Listeners(new TS3ListenerImpl(this));

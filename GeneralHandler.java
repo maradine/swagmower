@@ -40,8 +40,8 @@ public class GeneralHandler extends ListenerAdapter {
 					String myName = event.getBot().getNick().toLowerCase();
 					if (token.equals(myName)) {
 						event.respond("Nite nite.");
-						bot.shutdown(true);
 						try {
+							bot.shutdown(true);
 							Thread.sleep(5000L);
 						} catch (Exception e) {}
 						System.exit(0);

@@ -16,8 +16,14 @@ public class Swagmower extends ListenerAdapter {
 		//load properties from disk
 		Properties props = new Properties();
 		FileInputStream fis = null;
+		String propsArg = null;
+		if (args.length > 0) {
+			propsArg = args[0];
+		} else {
+			propsArg = "swagmower.properties";
+		}
 		try {
-			fis = new FileInputStream("swagmower.properties");
+			fis = new FileInputStream(propsArg);
 		} catch (IOException ioe) {
 			System.out.println("Can't find swagmower.proprties in local directory.");
 			System.out.println("Wrting out example file and terminating.");
@@ -34,7 +40,7 @@ public class Swagmower extends ListenerAdapter {
 				props.setProperty("ts3_pass", "");
 				props.setProperty("ts3_server", "");
 		
-				props.store(new FileOutputStream("swagmower.properties"), null);
+				props.store(new FileOutputStream("swagmower.properties.example"), null);
 			} catch (IOException ioe2) {
 				System.out.println("There was an error writing to the filesystem.");
 			}

@@ -67,6 +67,23 @@ public class TS3PresenceEngine {
 		return ignoreList;
 	}
 
+	public boolean shouldIgnore(String input) {
+		String nickname = input.toLowerCase();
+		for (String toMatch : ignoreList) {
+			if (toMatch.endsWith("*")) {
+				if (nickname.startsWith(toMatch.substring(0, 
+				    toMatch.length()-1))) {
+					return true;
+				}
+			} else {
+				if (toMatch.equals(nickname)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public void turnOn() {
 		if (!onSwitch) {
 			this.connect();
@@ -97,7 +114,7 @@ public class TS3PresenceEngine {
 		//System.out.println("CLIENT JOIN: " + clientID + " " + nickname + " " + channelID);
 		String newChannel = this.api.getChannelInfo(channelID).getName();
 		presenceState.put(clientID, new PresenceState(nickname, newChannel));
-		if (!ignoreList.contains(nickname.toLowerCase())) {
+		if (!this.shouldIgnore(nickname)) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.GREEN+"JOINED"+Colors.NORMAL+" to Channel "+newChannel+".");
 		}
 	}
@@ -117,7 +134,7 @@ public class TS3PresenceEngine {
 			return;
 		}
 		presenceState.put(clientID, new PresenceState(nickname, newChannel));
-		if (!ignoreList.contains(nickname.toLowerCase())) {
+		if (!this.shouldIgnore(nickname)) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.CYAN+"MOVED"+Colors.NORMAL+" to Channel "+newChannel+".");
 		}
 	}
@@ -129,7 +146,7 @@ public class TS3PresenceEngine {
 			nickname = presenceState.get(clientID).nickname;
 		}
 		presenceState.remove(nickname);
-		if (!ignoreList.contains(nickname.toLowerCase())) {
+		if (!this.shouldIgnore(nickname)) {
 			bot.sendMessage(channel, "["+nickname+"] has "+Colors.RED+"QUIT"+Colors.NORMAL+" Teamspeak.");
 		}
 	}

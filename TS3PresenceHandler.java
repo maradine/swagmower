@@ -136,7 +136,7 @@ public class TS3PresenceHandler extends ListenerAdapter {
 				String toPrint = "";
 				ArrayList<String> ignores = pe.getIgnoreList();
 				for (PresenceState ps : pe.getPresenceState().values()) {
-					if (!ignores.contains(ps.nickname.toLowerCase())) {
+					if (!pe.shouldIgnore(ps.nickname)) {
 						if (!toPrint.equals("")) {
 							toPrint += ", ";
 						}

@@ -101,6 +101,14 @@ public class Swagmower extends ListenerAdapter {
 		//link announcement handler
 		bot.getListenerManager().addListener(new AnnouncementHandler(ae, at));
 
+		//set up Tonight engine
+		TonightEngine te = new TonightEngine(bot, props);
+		Thread tt = new Thread(te, "tt");
+		tt.start();
+
+		//link announcement handler
+		bot.getListenerManager().addListener(new TonightHandler(te, props));
+		
 		//set up presence engine
 		TS3PresenceEngine pe = new TS3PresenceEngine(bot, ircChannel, props);
 

@@ -6,7 +6,9 @@ import java.util.Properties;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.List;
 
 public class TonightEngine implements Runnable {
 
@@ -24,6 +26,17 @@ public class TonightEngine implements Runnable {
 		onSwitch = true;
 		tonightState = new HashMap<String, ArrayList<User>>();
 		flushHour = 12;
+		initTitles();
+	}
+	
+	private void initTitles() {
+		String rawTitles = props.getProperty("title_list");
+		if (rawTitles != null && !rawTitles.isEmpty()) {
+			List<String> templist  = Arrays.asList(rawTitles.split("\\s*,\\s*"));
+			for (String s : templist) {
+				registerTitle(s);
+			}
+		}
 	}
 	
 	public Boolean isTitleRegistered(String title) {

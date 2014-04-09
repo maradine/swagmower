@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.ArrayList;
 import org.pircbotx.Colors;
 import java.util.Properties;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 
 public class TonightHandler extends ListenerAdapter {
@@ -118,7 +120,20 @@ public class TonightHandler extends ListenerAdapter {
 					event.respond("Sorry, you are not in the access list for announcment modification.");
 					return;
 				}
-				event.respond("Registered titles saved to disk.");
+				String saver = "";
+				for (String s : te.getRegisteredTitles()) {
+					saver = saver + s + ",";
+				}
+				if (saver.length()>0) {
+					saver = saver.substring(0, saver.length()-1);
+				}
+				props.setProperty("title_list", saver);
+				try {
+					props.store(new FileOutputStream("swagmower.properties"), null);
+					event.respond("Ignore list saved.");
+				} catch (IOException ioe) {
+					event.respond("There was an error writing to the filesystem.");
+				}
 
 			} else if (scanner.hasNext("flush")) { //store registered events in properties for persistence
 				if (!pm.isAllowed("!tonight flush",event.getUser(),event.getChannel())) {

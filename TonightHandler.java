@@ -39,27 +39,47 @@ public class TonightHandler extends ListenerAdapter {
 				scanner.next();
 				User u = event.getUser();
 				if (scanner.hasNext()) {
-					String title = scanner.next();
-					//try to parse game name
-					if (te.isTitleRegistered(title)) {
-						if (te.addUserToTitle(u, title)) {
-							event.respond("You are in for "+title+".");
+					String inList = "";
+					String dupList = "";
+					String regList = "";
+					while (scanner.hasNext()) {
+						String title = scanner.next();
+						//try to parse game name
+						if (te.isTitleRegistered(title)) {
+							if (te.addUserToTitle(u, title)) {
+								//event.respond("You are in for "+title+".");
+								inList += title+" ";
+							} else {
+								//event.respond("You were already in.");
+								dupList += title+" ";
+							}
+	
 						} else {
-							event.respond("You were already in.");
+							//event.respond("That's not a registered title.  Have an op fix you up.");
+							regList += title+" ";
 						}
-
-					} else {
-						event.respond("That's not a registered title.  Have an op fix you up.");
 					}
+					String output = "";
+					if (!inList.equals("")) {
+						output += "You are in for: "+inList+"  ";
+					}
+					if (!dupList.equals("")) {
+						output += "You were already in for: "+dupList+"  ";
+					}
+					if (!regList.equals("")) {
+						output += "Not a registered title: "+regList+"  ";
+					}
+					event.respond(output);
+
 				} else {
 					//add user to everything
-					te.addUserToAll(u);
-					event.respond("You are in for everything.");
+					te.addUserToAllPopulated(u);
+					event.respond("You are in for everything someone else has already called in on.");
 				}
 
 			} else if (scanner.hasNext("register")) { //add a registered event
 				if (!pm.isAllowed("!tonight register",event.getUser(),event.getChannel())) {
-					event.respond("Sorry, you are not in the access list for announcment modification.");
+					event.respond("Sorry, you are not in the access list for title registration.");
 					return;
 				}
 				scanner.next();
@@ -76,7 +96,7 @@ public class TonightHandler extends ListenerAdapter {
 			
 			} else if (scanner.hasNext("deregister")) { //remove a registered event
 				if (!pm.isAllowed("!tonight deregister",event.getUser(),event.getChannel())) {
-					event.respond("Sorry, you are not in the access list for announcment modification.");
+					event.respond("Sorry, you are not in the access list for title registration.");
 					return;
 				}
 				scanner.next();
@@ -117,7 +137,7 @@ public class TonightHandler extends ListenerAdapter {
 			} else if (scanner.hasNext("save")) { //store registered events in properties for persistence
 				//save state to props
 				if (!pm.isAllowed("!tonight save",event.getUser(),event.getChannel())) {
-					event.respond("Sorry, you are not in the access list for announcment modification.");
+					event.respond("Sorry, you are not in the access list for !tonight management.");
 					return;
 				}
 				String saver = "";
@@ -137,7 +157,7 @@ public class TonightHandler extends ListenerAdapter {
 
 			} else if (scanner.hasNext("flush")) { //store registered events in properties for persistence
 				if (!pm.isAllowed("!tonight flush",event.getUser(),event.getChannel())) {
-					event.respond("Sorry, you are not in the access list for announcment modification.");
+					event.respond("Sorry, you are not in the access list for !tonight management.");
 					return;
 				}
 				scanner.next();
@@ -156,11 +176,16 @@ public class TonightHandler extends ListenerAdapter {
 
 			} else if (scanner.hasNext("purge")) { //store registered events in properties for persistence
 				if (!pm.isAllowed("!tonight purge",event.getUser(),event.getChannel())) {
-					event.respond("Sorry, you are not in the access list for announcment modification.");
+					event.respond("Sorry, you are not in the access list for !tonight management.");
 					return;
 				}
 				te.purgeTonight();
 				event.respond("State destroyed.");
+			
+			
+			} else if (scanner.hasNext()) { //unrecognized verb
+				event.respond("Valid !tonight verbs include 'in' and 'out'.  ex. \"!tonight in ps2\"");
+			
 			} else {
 				//default output, show what's up tonight
 				event.respond("TONIGHT ON #FKPK: ");

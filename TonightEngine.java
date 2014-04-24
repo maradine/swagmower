@@ -87,6 +87,15 @@ public class TonightEngine implements Runnable {
 		}
 	}
 
+	public void addUserToAllPopulated(User user) {
+		for (String title : tonightState.keySet()) {
+			ArrayList<User> users = tonightState.get(title);
+			if (!users.contains(user) && users.size() > 0) {
+				users.add(user);
+			}
+		}
+	}
+	
 	public Boolean removeUserFromTitle(User user, String title){
 		if (tonightState.containsKey(title)) {
 			if (tonightState.get(title).contains(user)){

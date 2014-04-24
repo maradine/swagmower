@@ -39,18 +39,20 @@ public class TonightHandler extends ListenerAdapter {
 				scanner.next();
 				User u = event.getUser();
 				if (scanner.hasNext()) {
-					String title = scanner.next();
+					String title ;
+          while (title  = scanner.next()){
 					//try to parse game name
-					if (te.isTitleRegistered(title)) {
-						if (te.addUserToTitle(u, title)) {
-							event.respond("You are in for "+title+".");
-						} else {
-							event.respond("You were already in.");
-						}
+            if (te.isTitleRegistered(title)) {
+              if (te.addUserToTitle(u, title)) {
+                event.respond("You are in for "+title+".");
+              } else {
+                event.respond("You were already in for"+title+".");
+              }
 
-					} else {
-						event.respond("That's not a registered title.  Have an op fix you up.");
-					}
+            } else {
+              event.respond("That's not a registered title.  Have an op fix you up.");
+            }
+          }
 				} else {
 					//add user to everything
 					te.addUserToAll(u);

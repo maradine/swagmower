@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.TreeSet;
 import java.util.Set;
 import java.util.List;
 
@@ -116,8 +117,11 @@ public class TonightEngine implements Runnable {
 		}
 	}
 	
-	public Set<String> getRegisteredTitles() {
-		return tonightState.keySet();
+	public ArrayList<String> getRegisteredTitles() {
+		StateElementComparator sec = new StateElementComparator(tonightState);
+		ArrayList<String> als = new ArrayList<String>(tonightState.keySet());
+		java.util.Collections.sort(als, sec);
+		return als;
 	}
 
 	public ArrayList<User> getInUsers(String title) {

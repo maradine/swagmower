@@ -33,7 +33,7 @@ public class TS3PresenceEngine {
 		this.bot = bot;
 		this.channel = channel;
 		this.props = props;
-		onSwitch = false;
+		onSwitch = true;
 		squelch = true;
 		query = null;
 		api = null;

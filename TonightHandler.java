@@ -112,7 +112,7 @@ public class TonightHandler extends ListenerAdapter {
 				}
 
 			} else if (scanner.hasNext("list")) { //show registered events in some order
-				Set<String> titles = te.getRegisteredTitles();
+				ArrayList<String> titles = te.getRegisteredTitles();
 				String writer = "Registered titles: ";
 				for (String s : titles) {
 					writer += s+" ";
@@ -189,7 +189,7 @@ public class TonightHandler extends ListenerAdapter {
 			} else {
 				//default output, show what's up tonight
 				event.respond("TONIGHT ON #FKPK: ");
-				Set<String> titles = te.getRegisteredTitles();
+				ArrayList<String> titles = te.getRegisteredTitles();
 				Boolean nothingPreventer = false;
 				if (titles.size() > 0) {
 					for (String title : titles) {

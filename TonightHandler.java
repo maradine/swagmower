@@ -150,7 +150,7 @@ public class TonightHandler extends ListenerAdapter {
 				props.setProperty("title_list", saver);
 				try {
 					props.store(new FileOutputStream("swagmower.properties"), null);
-					event.respond("Ignore list saved.");
+					event.respond("Title list saved.");
 				} catch (IOException ioe) {
 					event.respond("There was an error writing to the filesystem.");
 				}

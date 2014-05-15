@@ -8,15 +8,31 @@ import org.pircbotx.hooks.events.MessageEvent;
 
 public class Swagmower extends ListenerAdapter {
 	
+	
+	private static String propsArg = null;
+	private static FileInputStream fis = null;
+	private static Properties props = null;
+
+
+	public static void reloadProps() throws IOException {
+		try {
+			fis = new FileInputStream(propsArg);
+		} catch (IOException ioe) {
+			//something's happened to our file since we invoked.
+			System.out.println("Attempted to relaod file input stream from argv file - ioexception");
+			throw ioe;
+		}
+		props.load(fis);
+	}
+	
+		
 	public static void main(String[] args) throws Exception {
 		
 		//instantiate underlying bot
 		PircBotX bot = new PircBotX();
 
 		//load properties from disk
-		Properties props = new Properties();
-		FileInputStream fis = null;
-		String propsArg = null;
+		props = new Properties();
 		if (args.length > 0) {
 			propsArg = args[0];
 		} else {
@@ -106,8 +122,16 @@ public class Swagmower extends ListenerAdapter {
 		Thread tt = new Thread(te, "tt");
 		tt.start();
 
-		//link announcement handler
+		//link tonight handler
 		bot.getListenerManager().addListener(new TonightHandler(te, props));
+		
+		//set up stars engine
+		StarsEngine se = new StarsEngine(bot, props);
+		Thread st = new Thread(se, "st");
+		st.start();
+
+		//link stars handler
+		bot.getListenerManager().addListener(new StarsHandler(se, props));
 		
 		//set up presence engine
 		TS3PresenceEngine pe = new TS3PresenceEngine(bot, ircChannel, props);

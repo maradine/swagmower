@@ -2,6 +2,7 @@ import com.dropbox.core.*;
 import java.io.*;
 import java.util.Locale;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 
 class DropboxHelper {
 
@@ -66,6 +67,54 @@ class DropboxHelper {
 		}
 
 		return justM.size()-justX.size();
+
+	}
+	
+	public static PriorityQueue<Integer> getPlayersOutstanding(String appKey, String appSecret, String accessToken, String gamePath, String gamePrefix) throws DbxException {
+		
+		DbxAppInfo appInfo = new DbxAppInfo(appKey, appSecret);
+		DbxRequestConfig config = new DbxRequestConfig("Swagmower/1.0", Locale.getDefault().toString());
+		DbxWebAuthNoRedirect webAuth = new DbxWebAuthNoRedirect(config, appInfo);
+		DbxClient client = new DbxClient(config, accessToken);
+
+		DbxEntry.WithChildren listing = client.getMetadataWithChildren(gamePath);
+        
+		ArrayList<String> fileNames = new ArrayList<String>();
+
+		// get all entries that are a file and match the prefix, put in list
+		for (DbxEntry child : listing.children) {
+			if (child.isFile()) {
+				DbxEntry.File file = child.asFile();
+			
+				String name = file.name.toLowerCase();
+				if (name.startsWith(gamePrefix.toLowerCase())){
+					fileNames.add(name);
+				}
+	
+			}
+	        }
+
+		PriorityQueue<Integer> remainders = new PriorityQueue<Integer>();
+		ArrayList<Integer> theMs = new ArrayList<Integer>();
+		ArrayList<Integer> theXs = new ArrayList<Integer>();
+		for (String name: fileNames) {
+			int prefixSize = gamePrefix.length();
+			int offset = prefixSize+1;
+			if (name.substring(offset,offset+1).equals("m")) {
+				theMs.add(Integer.valueOf(name.substring(offset+1,offset+2)));
+			}
+			if (name.substring(offset,offset+1).equals("x") && !name.substring(offset+1,offset+2).equals("y")) {
+				theXs.add(Integer.valueOf(name.substring(offset+1,offset+2)));
+			}
+			
+		}
+		for (Integer i : theXs) {
+			theMs.remove(i);
+		}
+		for (Integer i : theMs) {
+			remainders.add(i);
+		}
+		return remainders;
 
 	}
 

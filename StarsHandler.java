@@ -4,6 +4,7 @@ import org.pircbotx.User;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 import org.pircbotx.Colors;
 import java.util.Properties;
 import java.io.FileOutputStream;
@@ -35,19 +36,53 @@ public class StarsHandler extends ListenerAdapter {
 
 		if (scanner.hasNext("!stars")) {
 			scanner.next();
-			if (scanner.hasNext("in")) {  //signal inclusion into registered event or all events
-				//event.respond(size+" in for "+title+": "+userString);
-				//nothingPreventer = true;
+			if (scanner.hasNext("ai")) {
+				scanner.next();
+				if (scanner.hasNext("add")) {
+					scanner.next();
+					if (scanner.hasNextInt()) {
+						int p = scanner.nextInt();
+						se.addAiPlayer(p);
+						event.respond("Player "+p+" has been marked as AI.");
+					} else {
+						event.respond("Which number am I adding?");
+					}
+				} else if (scanner.hasNext("remove")) {
+					scanner.next();
+					if (scanner.hasNextInt()) {
+						int p = scanner.nextInt();
+						if (se.removeAiPlayer(p)){
+							event.respond("Player "+p+" has been removed from the AI roster.");
+						} else {
+							event.respond("That player wasn't marked as an AI.");
+						}
+					} else {
+						event.respond("Which number am I removing?");
+					}
+
+				} else if (scanner.hasNext("purge")) {
+					se.purgeAiPlayers();
+					event.respond("AI player manifest purged.");
+				} else {
+					String aiString = "";
+					ArrayList<Integer> aiPlayers = se.getAiPlayers();
+					for (Integer i : aiPlayers) {
+						aiString += i+" ";
+					}
+					event.respond("The following players are marked as AI: "+aiString);
+					//report which ais
+				}
+				
 			} else if (scanner.hasNext("somethingelse")) {
 				//blah
 			} else {
 				//default case
 				//State the game year and which players are outstanding
-				String appKey = props.getProperty("dropbox_app_key");;
-				String appSecret = props.getProperty("dropbox_app_secret");
-				String accessToken = props.getProperty("dropbox_access_token");
-				String gamePath = props.getProperty("stars_game_path");
-				String gamePrefix = props.getProperty("stars_game_prefix");
+				String appKey = se.getAppKey();
+				String appSecret = se.getAppSecret();
+				String accessToken = se.getAccessToken();
+				String gamePath = se.getGamePath();
+				String gamePrefix = se.getGamePrefix();
 				if (appKey == null || appSecret == null || accessToken == null || appKey.equals("") || appSecret.equals("") || accessToken.equals("")) {
 					event.respond("Check config - app key, app secret, or access token missing or null.");
 				} else if (gamePath == null || gamePrefix == null || gamePath.equals("") || gamePrefix.equals("")) {
@@ -55,23 +90,25 @@ public class StarsHandler extends ListenerAdapter {
 				} else {
 					//actually do something
 					int year = 0;
-					int outstanding = 0;
+					PriorityQueue<Integer> players;
 					try {
 						year = DropboxHelper.getGameDate(appKey, appSecret, accessToken, gamePath, gamePrefix);
-					} catch (DbxException de) {
-						event.respond("Error connection to Dropbox: "+de.getMessage());
-						return;
-					}
-					try {
 						//trim path to remove trailing slash cuz dropbox can't dig
 						gamePath = gamePath.substring(0,gamePath.length()-1);
-						outstanding = DropboxHelper.getTurnsOutstanding(appKey, appSecret, accessToken, gamePath, gamePrefix);
+						players = DropboxHelper.getPlayersOutstanding(appKey, appSecret, accessToken, gamePath, gamePrefix);
 					} catch (DbxException de) {
-						event.respond("Error connection to Dropbox: "+de.getMessage());
+						event.respond("Error connecting to Dropbox: "+de.getMessage());
 						return;
 					}
 					year +=2400;
-					event.respond("The year is "+year+".  "+outstanding+" players outstanding.");
+				 	String playerString = "";
+					for (Integer i : players) {
+						if (!se.getAiPlayers().contains(i)) {
+							playerString += i+" ";
+						}
+					}
+					int outstanding = players.size() - se.getAiPlayers().size();
+					event.respond("The year is "+year+".  "+outstanding+" players outstanding: "+playerString);
 				}
 
 			}

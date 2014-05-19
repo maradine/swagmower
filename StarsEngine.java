@@ -15,17 +15,75 @@ public class StarsEngine implements Runnable {
 
 	private PircBotX bot;
 	private String channel;
-	private boolean onSwitch;
+	private Boolean onSwitch;
 	private Properties props;
+	private String appKey;
+	private String appSecret;
+	private String accessToken;
+	private String gamePath;
+	private String gamePrefix;
+	private ArrayList<Integer> aiPlayers;
 
 	public StarsEngine(PircBotX bot, Properties props) {
 		this.bot = bot;
 		this.props = props;
 		this.channel = props.getProperty("irc_channel");
-		onSwitch = true;
+		aiPlayers = new ArrayList<Integer>();
+		onSwitch = init();
+
+	}
+
+	public Boolean init() {
+		appKey = props.getProperty("dropbox_app_key");;
+		appSecret = props.getProperty("dropbox_app_secret");
+		accessToken = props.getProperty("dropbox_access_token");
+		gamePath = props.getProperty("stars_game_path");
+		gamePrefix = props.getProperty("stars_game_prefix");
+		if (appKey == null || appSecret == null || accessToken == null || appKey.equals("") || appSecret.equals("") || accessToken.equals("")) {
+			return false;
+		} else if (gamePath == null || gamePrefix == null || gamePath.equals("") || gamePrefix.equals("")) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
+	public void addAiPlayer(Integer add) {
+		aiPlayers.add(add);
+	}
+
+	public Boolean removeAiPlayer(Integer remove) {
+		return aiPlayers.remove(remove);
+	}
 	
+	public ArrayList<Integer> getAiPlayers() {
+		return aiPlayers;
+	}
+
+	public void purgeAiPlayers() {
+		aiPlayers = new ArrayList<Integer>();
+	}
+
+	public String getAppKey() {
+		return this.appKey;
+	}
+
+	public String getAppSecret() {
+		return this.appSecret;
+	}
+
+	public String getAccessToken() {
+		return this.accessToken;
+	}
+
+	public String getGamePath() {
+		return this.gamePath;
+	}
+
+	public String getGamePrefix() {
+		return this.gamePrefix;
+	}
+
 	public void turnOn() {
 		onSwitch = true;
 	}

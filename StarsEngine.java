@@ -23,12 +23,14 @@ public class StarsEngine implements Runnable {
 	private String gamePath;
 	private String gamePrefix;
 	private ArrayList<Integer> aiPlayers;
+	private HashMap<Integer, User> playerMap;
 
 	public StarsEngine(PircBotX bot, Properties props) {
 		this.bot = bot;
 		this.props = props;
 		this.channel = props.getProperty("irc_channel");
 		aiPlayers = new ArrayList<Integer>();
+		playerMap = new HashMap<Integer, User>();
 		onSwitch = init();
 
 	}
@@ -48,6 +50,26 @@ public class StarsEngine implements Runnable {
 		}
 	}
 	
+	public void mapPlayer(Integer i, User u) {
+		playerMap.put(i,u);
+	}
+
+	public Boolean unmapPlayer(Integer i) {
+		if (playerMap.remove(i) != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public void purgePlayerMap() {
+		playerMap = new HashMap<Integer, User>();
+	}
+
+	public HashMap<Integer, User> getPlayerMap() {
+		return playerMap;
+	}
+
 	public void addAiPlayer(Integer add) {
 		aiPlayers.add(add);
 	}

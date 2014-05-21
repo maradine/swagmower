@@ -4,6 +4,7 @@ import org.pircbotx.User;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.PriorityQueue;
 import org.pircbotx.Colors;
 import java.util.Properties;
@@ -73,8 +74,27 @@ public class StarsHandler extends ListenerAdapter {
 					//report which ais
 				}
 				
-			} else if (scanner.hasNext("somethingelse")) {
-				//blah
+			} else if (scanner.hasNext("map")) {
+				scanner.next();
+				if (scanner.hasNextInt()) {
+					int p = scanner.nextInt();
+					se.mapPlayer(p, event.getUser());
+					event.respond(event.getUser().getNick()+" has been mapped to player "+p+".");
+				} else if (scanner.hasNext("purge")) {
+					se.purgePlayerMap();
+					event.respond("You have unmapped all playeers.");
+				} else 	{
+					event.respond("Give me a number and I'll map you to a player slot.  You can't map someone else.  Maybe I'll do a list here later.");
+				}
+			} else if (scanner.hasNext("unmap")) {
+				scanner.next();
+				if (scanner.hasNextInt()) {
+					int p = scanner.nextInt();
+					se.unmapPlayer(p);
+					event.respond("Player "+p+"  has been unmapped.");
+				} else {
+					event.respond("Give me a number and I'll unmap a player slot. Don't abuse this.");
+				}
 			} else {
 				//default case
 				//State the game year and which players are outstanding
@@ -102,9 +122,14 @@ public class StarsHandler extends ListenerAdapter {
 					}
 					year +=2400;
 				 	String playerString = "";
+					HashMap<Integer, User> playerMap = se.getPlayerMap();
 					for (Integer i : players) {
 						if (!se.getAiPlayers().contains(i)) {
-							playerString += i+" ";
+							if (playerMap.containsKey(i)) {
+								playerString += playerMap.get(i).getNick() + " ";
+							} else {
+								playerString += i+" ";
+							}
 						}
 					}
 					int outstanding = players.size() - se.getAiPlayers().size();

@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Set;
@@ -24,6 +25,8 @@ public class StarsEngine implements Runnable {
 	private String gamePrefix;
 	private ArrayList<Integer> aiPlayers;
 	private HashMap<Integer, User> playerMap;
+	private StarsGameState state;
+	private Boolean firstRun;
 
 	public StarsEngine(PircBotX bot, Properties props) {
 		this.bot = bot;
@@ -31,11 +34,15 @@ public class StarsEngine implements Runnable {
 		this.channel = props.getProperty("irc_channel");
 		aiPlayers = new ArrayList<Integer>();
 		playerMap = new HashMap<Integer, User>();
+		state = new StarsGameState();
+		firstRun = true;
 		onSwitch = init();
 
 	}
 
 	public Boolean init() {
+		onSwitch = false;
+		state = new StarsGameState();
 		appKey = props.getProperty("dropbox_app_key");;
 		appSecret = props.getProperty("dropbox_app_secret");
 		accessToken = props.getProperty("dropbox_access_token");
@@ -48,6 +55,7 @@ public class StarsEngine implements Runnable {
 		} else {
 			return true;
 		}
+
 	}
 	
 	public void mapPlayer(Integer i, User u) {
@@ -116,28 +124,66 @@ public class StarsEngine implements Runnable {
 
 	public void run() {
 		while (true) {
+			
+			System.out.println("StarsEngine: entering run block");
+			Calendar now;
 			try {
 				//bot.sendMessage(channel, "Entering run() block.");
-				Calendar now;
 				
 				//are we even turned on?
 				if (onSwitch) {
-					//what time is it?
-					/*
-					now = Calendar.getInstance();
-					int nowHours = now.get(Calendar.HOUR_OF_DAY);
-					int nowMinutes = now.get(Calendar.MINUTE);
-					if (nowHours == flushHour && nowMinutes == 0) {
-						//flushTonight();
-						bot.sendMessage(channel, "A new day dawns!");
-					}
-					*/
+					System.out.println("StarsEngine: turned on");
+					StarsGameState newState = DropboxHelper.getStarsGameState(appKey, appSecret, accessToken, gamePath, gamePrefix);
+					
+					if (!firstRun) {
+						System.out.println("StarsEngine: not first run, processing.");
+						PriorityQueue<Integer> flipped = new PriorityQueue<Integer>();
+						for (Integer i : state.getState().keySet()) {
+							System.out.println("StarsEngine: processing state math for int "+i);
+							if (!state.getState().get(i) && newState.getState().get(i)) {
+								flipped.add(i);
+								System.out.println("StarsEngine: "+i+"was flipped to true, adding to list");
+							}
+						}
+						
+						if (newState.getYear() > state.getYear()) {
+							//if the year has flipped, show that - most important.
+							System.out.println("StarsEngine: year has advanced.");
 
+							bot.sendMessage(channel, "The year is now "+(newState.getYear()+2400)+".  All turns outstanding.");
+						} else if (flipped.size() > 0) {
+							System.out.println("StarsEngine: flipped size greater than 0");
+							//if a player has turned in, present.
+							String notice;
+							for (Integer i : flipped) {
+								notice ="";
+								if (playerMap.containsKey(i)) {
+									System.out.println("StarsEngine: have a name mapping for player "+i);
+									String name = playerMap.get(i).getNick();
+									bot.sendMessage(channel, name+" has submitted a turn.");
+								} else {
+									System.out.println("StarsEngine: no name mapping for player "+i);
+									bot.sendMessage(channel, "Player "+i+" has submitted a turn.");
+								}
+							}
+						}
+					
+					}
+					state = newState;
+					firstRun = false;
+					
 				} else {
 					//bot.sendMessage(channel, "Turned off, doing nothing.");
 				}					
-				
+
+			} catch (Exception e) {
+				System.out.println(e);
+				e.printStackTrace();
+				bot.sendMessage(channel, "Totally unhandled exception - check the live feed, sparky.");
+			} finally {
 				//caluclate time to next minute
+				System.out.println("StarsEngine: setting up next run");
+
 				now = Calendar.getInstance();
 				int millis = 1000 - now.get(Calendar.MILLISECOND);
 				int seconds = 59 - now.get(Calendar.SECOND);
@@ -145,13 +191,7 @@ public class StarsEngine implements Runnable {
 
 				//sleep
 				//bot.sendMessage(channel, "Sleeping for "+sleepMillis+" millis.");
-				Thread.sleep(sleepMillis);
-
-
-			} catch (Exception e) {
-				System.out.println(e);
-				e.printStackTrace();
-				bot.sendMessage(channel, "Totally unhandled exception - check the live feed, sparky.");
+				try {Thread.sleep(sleepMillis);} catch (Exception e) {System.exit(1);}
 			}
 		}
 	}

@@ -95,6 +95,12 @@ public class StarsHandler extends ListenerAdapter {
 				} else {
 					event.respond("Give me a number and I'll unmap a player slot. Don't abuse this.");
 				}
+			} else if (scanner.hasNext("init")) {
+				if (se.init()) {
+					event.respond("I rebuilt the stars engine from props.  It's fine.  Everything that can be fine, is fine.");
+				} else {
+					event.respond("I tried, but something went wrong, and I'm not feeling particularly communicative.");
+				}
 			} else {
 				//default case
 				//State the game year and which players are outstanding
@@ -113,8 +119,6 @@ public class StarsHandler extends ListenerAdapter {
 					PriorityQueue<Integer> players;
 					try {
 						year = DropboxHelper.getGameDate(appKey, appSecret, accessToken, gamePath, gamePrefix);
-						//trim path to remove trailing slash cuz dropbox can't dig
-						gamePath = gamePath.substring(0,gamePath.length()-1);
 						players = DropboxHelper.getPlayersOutstanding(appKey, appSecret, accessToken, gamePath, gamePrefix);
 					} catch (DbxException de) {
 						event.respond("Error connecting to Dropbox: "+de.getMessage());

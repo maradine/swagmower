@@ -1,4 +1,8 @@
-SWAGMOWER is a bot for managing a small gaming group in IRC.  It does two things:
+SWAGMOWER is a bot for managing a small gaming group in IRC.  It is a less complicated fork of https://github.com/maradine/ps2bot, which
+eventually became PSU's Oracle of Death.
+
+It does three things:
 
 <> Maintains an announcements board.
 <> Tracks user presence in Teamspeak.
+<> Tracks and nags Stars! players.

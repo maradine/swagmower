@@ -160,8 +160,10 @@ public class StarsHandler extends ListenerAdapter {
 							}
 						}
 					}
-					int outstanding = players.size() - se.getAiPlayers().size();
-					event.respond("The year is "+year+".  "+outstanding+" players outstanding: "+playerString);
+					//int outstanding = players.size() - se.getAiPlayers().size();
+					//event.respond("The year is "+year+".  "+outstanding+" players outstanding: "+playerString);
+					
+					event.respond("The year is "+year+".  "+players+" players outstanding: "+playerString);
 				}
 
 			}

@@ -64,6 +64,26 @@ public class StarsHandler extends ListenerAdapter {
 				} else if (scanner.hasNext("purge")) {
 					se.purgeAiPlayers();
 					event.respond("AI player manifest purged.");
+				} else if (scanner.hasNext("save")) { //store ai elections in properties for persistence
+					//save state to props
+					if (!pm.isAllowed("!stars save",event.getUser(),event.getChannel())) {
+						event.respond("Sorry, you are not in the access list for !stars management.");
+						return;
+					}
+					String saver = "";
+					for (Integer i : se.getAiPlayers()) {
+						saver = saver + i.toString() + ",";
+					}
+					if (saver.length()>0) {
+						saver = saver.substring(0, saver.length()-1);
+					}
+					props.setProperty("stars_ai_list", saver);
+					try {
+						props.store(new FileOutputStream("swagmower.properties"), null);
+						event.respond("AI list saved.");
+					} catch (IOException ioe) {
+						event.respond("There was an error writing to the filesystem.");
+					}
 				} else {
 					String aiString = "";
 					ArrayList<Integer> aiPlayers = se.getAiPlayers();
@@ -98,9 +118,13 @@ public class StarsHandler extends ListenerAdapter {
 			} else if (scanner.hasNext("init")) {
 				if (se.init()) {
 					event.respond("I rebuilt the stars engine from props.  It's fine.  Everything that can be fine, is fine.");
+					se.turnOn();
 				} else {
 					event.respond("I tried, but something went wrong, and I'm not feeling particularly communicative.");
 				}
+			} else if (scanner.hasNext("off")) {
+				se.turnOff();
+				event.respond("Stars engine shut down.  No updates will be forthcoming.");
 			} else {
 				//default case
 				//State the game year and which players are outstanding

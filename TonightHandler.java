@@ -8,6 +8,7 @@ import org.pircbotx.Colors;
 import java.util.Properties;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import org.pircbotx.PircBotX;
 
 
 public class TonightHandler extends ListenerAdapter {
@@ -17,13 +18,15 @@ public class TonightHandler extends ListenerAdapter {
 	private Scanner scanner;
 	private TonightEngine te;
 	private Properties props;
+	private PircBotX bot;
 
-	public TonightHandler(TonightEngine te,Properties props) {
+	public TonightHandler(PircBotX bot, TonightEngine te, Properties props) {
 		super();
 		this.te = te;
 		this.pm = PermissionsManager.getInstance();
 		this.props = props;
-		System.out.println("PresenceHandler Initialized.");
+		this.bot = bot;
+		System.out.println("TonightHandler Initialized.");
 	}
 
 	public void onMessage(MessageEvent event) {
@@ -42,6 +45,19 @@ public class TonightHandler extends ListenerAdapter {
 					String inList = "";
 					String dupList = "";
 					String regList = "";
+					if (scanner.hasNext("predd")) {event.respond("Gross."); return;}
+					if (scanner.hasNext("yourmom")) {event.respond("Gonna get crowded in there."); return;}
+					if (scanner.hasNext("yourmother")) {event.respond("Gonna get crowded in there."); return;}
+					if (scanner.hasNext("your_mom")) {event.respond("Gonna get crowded in there."); return;}
+					if (scanner.hasNext("sync")) {event.respond("IT AINT NO LIE"); bot.kick(event.getChannel(),event.getUser(),"BABY BYE BYE BYE");return;}
+					if (scanner.hasNext("work")) {event.respond("Wanna increase your productivity at the office?"); bot.kick(event.getChannel(),event.getUser(),"GET OUT OF IRC");return;}
+					if (scanner.hasNext("batteries")) {event.respond("PRIASE VANU."); return;}
+					if (scanner.hasNext("thebutt")) {event.respond("What what?"); return;}
+					if (scanner.hasNext("reuben")) {event.respond("Tonight's reuben contains: corned beef."); return;}
+					if (scanner.hasNext("teamhorse")) {event.respond("TEAM HORSE RULES YOU"); return;}
+					if (scanner.hasNext("team_horse")) {event.respond("TEAM HORSE RULES YOU"); return;}
+					if (scanner.hasNext("horse")) {event.respond("TEAM HORSE RULES YOU"); return;}
+					
 					while (scanner.hasNext()) {
 						String title = scanner.next();
 						//try to parse game name

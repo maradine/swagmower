@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Set;
 import java.util.List;
+import com.dropbox.core.DbxException.RetryLater;
 
 public class StarsEngine implements Runnable {
 
@@ -48,6 +49,7 @@ public class StarsEngine implements Runnable {
 		accessToken = props.getProperty("dropbox_access_token");
 		gamePath = props.getProperty("stars_game_path");
 		gamePrefix = props.getProperty("stars_game_prefix");
+		initAi();
 		if (appKey == null || appSecret == null || accessToken == null || appKey.equals("") || appSecret.equals("") || accessToken.equals("")) {
 			return false;
 		} else if (gamePath == null || gamePrefix == null || gamePath.equals("") || gamePrefix.equals("")) {
@@ -58,6 +60,16 @@ public class StarsEngine implements Runnable {
 
 	}
 	
+	private void initAi() {
+		String rawAi = props.getProperty("stars_ai_list");
+		if (rawAi != null && !rawAi.isEmpty()) {
+			List<String> templist  = Arrays.asList(rawAi.split("\\s*,\\s*"));
+			for (String s : templist) {
+				addAiPlayer(new Integer(s));
+			}
+		}
+	}
+
 	public void mapPlayer(Integer i, User u) {
 		playerMap.put(i,u);
 	}
@@ -176,6 +188,9 @@ public class StarsEngine implements Runnable {
 					//bot.sendMessage(channel, "Turned off, doing nothing.");
 				}					
 
+			} catch (RetryLater dbe) {
+				bot.sendMessage(channel, "Dropbox told us to simmer down - taking 10.");
+				try {Thread.sleep(600000);} catch (Exception e) {System.exit(1);}
 			} catch (Exception e) {
 				System.out.println(e);
 				e.printStackTrace();

@@ -123,7 +123,7 @@ public class Swagmower extends ListenerAdapter {
 		tt.start();
 
 		//link tonight handler
-		bot.getListenerManager().addListener(new TonightHandler(te, props));
+		bot.getListenerManager().addListener(new TonightHandler(bot, te, props));
 		
 		//set up stars engine
 		StarsEngine se = new StarsEngine(bot, props);

@@ -29,6 +29,11 @@ public class StarsEngine implements Runnable {
 	private StarsGameState state;
 	private Boolean firstRun;
 
+	private String SNSARN;
+	private String AWSAccessKey;
+	private String AWSSecretKey;
+	private Boolean SNSOnSwitch;
+
 	public StarsEngine(PircBotX bot, Properties props) {
 		this.bot = bot;
 		this.props = props;
@@ -38,6 +43,7 @@ public class StarsEngine implements Runnable {
 		state = new StarsGameState();
 		firstRun = true;
 		onSwitch = init();
+		SNSOnSwitch = initSNS();
 
 	}
 
@@ -67,6 +73,17 @@ public class StarsEngine implements Runnable {
 			for (String s : templist) {
 				addAiPlayer(new Integer(s));
 			}
+		}
+	}
+
+	private Boolean initSNS() {
+		AWSAccessKey = props.getProperty("aws_access_key");;
+		AWSSecretKey = props.getProperty("aws_secret_key");
+		SNSARN = props.getProperty("sns_arn");
+		if (AWSAccessKey == null || AWSSecretKey == null || SNSARN == null || AWSAccessKey.equals("") || AWSSecretKey.equals("") || SNSARN.equals("")) {
+			return false;
+		} else {
+			return true;
 		}
 	}
 
@@ -134,6 +151,10 @@ public class StarsEngine implements Runnable {
 		onSwitch = false;
 	}
 
+	public void SNSSubscribe(String s) {
+	    SNSHelper.subscribe(AWSAccessKey, AWSSecretKey, SNSARN, s);
+	}
+
 	public void run() {
 		while (true) {
 			
@@ -162,7 +183,10 @@ public class StarsEngine implements Runnable {
 							//if the year has flipped, show that - most important.
 							System.out.println("StarsEngine: year has advanced.");
 
-							bot.sendMessage(channel, "The year is now "+(newState.getYear()+2400)+".  All turns outstanding.");
+							bot.sendMessage(channel, "The year is now "+(newState.getYear()+2400)+".  Your turn is ready.");
+							if (SNSOnSwitch) {
+							    SNSHelper.publish(AWSAccessKey, AWSSecretKey, SNSARN, "The year is now "+(newState.getYear()+2400)+".  Your turn is ready.");
+							}
 						} else if (flipped.size() > 0) {
 							System.out.println("StarsEngine: flipped size greater than 0");
 							//if a player has turned in, present.

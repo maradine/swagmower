@@ -25,7 +25,7 @@ public class StarsEngine implements Runnable {
 	private String gamePath;
 	private String gamePrefix;
 	private ArrayList<Integer> aiPlayers;
-	private HashMap<Integer, User> playerMap;
+	private HashMap<Integer, String> playerMap;
 	private StarsGameState state;
 	private Boolean firstRun;
 
@@ -39,7 +39,7 @@ public class StarsEngine implements Runnable {
 		this.props = props;
 		this.channel = props.getProperty("irc_channel");
 		aiPlayers = new ArrayList<Integer>();
-		playerMap = new HashMap<Integer, User>();
+		playerMap = new HashMap<Integer, String>();
 		state = new StarsGameState();
 		firstRun = true;
 		onSwitch = init();
@@ -56,6 +56,7 @@ public class StarsEngine implements Runnable {
 		gamePath = props.getProperty("stars_game_path");
 		gamePrefix = props.getProperty("stars_game_prefix");
 		initAi();
+		initMap();
 		if (appKey == null || appSecret == null || accessToken == null || appKey.equals("") || appSecret.equals("") || accessToken.equals("")) {
 			return false;
 		} else if (gamePath == null || gamePrefix == null || gamePath.equals("") || gamePrefix.equals("")) {
@@ -76,6 +77,19 @@ public class StarsEngine implements Runnable {
 		}
 	}
 
+	private void initMap() {
+		String rawMap = props.getProperty("stars_player_map");
+		if (rawMap != null && !rawMap.isEmpty()) {
+			List<String> templist  = Arrays.asList(rawMap.split("\\s*,\\s*"));
+			//Should now have a list of colon separated pairs
+			for (String s : templist) {
+				String[] bi = s.split(":");
+				mapPlayer(Integer.parseInt(bi[0]),bi[1]);
+			}
+		}
+	}
+
+
 	private Boolean initSNS() {
 		AWSAccessKey = props.getProperty("aws_access_key");;
 		AWSSecretKey = props.getProperty("aws_secret_key");
@@ -87,8 +101,8 @@ public class StarsEngine implements Runnable {
 		}
 	}
 
-	public void mapPlayer(Integer i, User u) {
-		playerMap.put(i,u);
+	public void mapPlayer(Integer i, String s) {
+		playerMap.put(i,s);
 	}
 
 	public Boolean unmapPlayer(Integer i) {
@@ -100,10 +114,10 @@ public class StarsEngine implements Runnable {
 	}
 
 	public void purgePlayerMap() {
-		playerMap = new HashMap<Integer, User>();
+		playerMap = new HashMap<Integer, String>();
 	}
 
-	public HashMap<Integer, User> getPlayerMap() {
+	public HashMap<Integer, String> getPlayerMap() {
 		return playerMap;
 	}
 
@@ -195,7 +209,7 @@ public class StarsEngine implements Runnable {
 								notice ="";
 								if (playerMap.containsKey(i)) {
 									System.out.println("StarsEngine: have a name mapping for player "+i);
-									String name = playerMap.get(i).getNick();
+									String name = playerMap.get(i);
 									bot.sendMessage(channel, name+" has submitted a turn.");
 								} else {
 									System.out.println("StarsEngine: no name mapping for player "+i);

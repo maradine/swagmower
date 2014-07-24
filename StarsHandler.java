@@ -99,8 +99,24 @@ public class StarsHandler extends ListenerAdapter {
 				scanner.next();
 				if (scanner.hasNextInt()) {
 					int p = scanner.nextInt();
-					se.mapPlayer(p, event.getUser());
+					se.mapPlayer(p, event.getUser().getNick());
 					event.respond(event.getUser().getNick()+" has been mapped to player "+p+".");
+					//save state to props
+					String saver = "";
+					HashMap<Integer, String> playerMap = se.getPlayerMap();
+					for (Integer i : playerMap.keySet()) {
+					    saver = saver + i + ":" + playerMap.get(i) + ",";
+					}
+					if (saver.length()>0) {
+					    saver = saver.substring(0, saver.length()-1);
+					}
+					props.setProperty("stars_player_map", saver);
+					
+					try {
+						props.store(new FileOutputStream("swagmower.properties"), null);
+					} catch (IOException ioe) {
+						event.respond("There was an error writing to the filesystem.");
+					}
 				} else if (scanner.hasNext("purge")) {
 					se.purgePlayerMap();
 					event.respond("You have unmapped all playeers.");
@@ -114,7 +130,7 @@ public class StarsHandler extends ListenerAdapter {
 					se.unmapPlayer(p);
 					event.respond("Player "+p+"  has been unmapped.");
 				} else {
-					event.respond("Give me a number and I'll unmap a player slot. Don't abuse this.");
+					event.respond("Give me a number and I'll unmap a player slot. Don't abuse this.");0
 				}
 			} else if (scanner.hasNext("init") || scanner.hasNext("on")) {
 				if (se.init()) {
@@ -179,11 +195,11 @@ public class StarsHandler extends ListenerAdapter {
 					}
 					year +=2400;
 				 	String playerString = "";
-					HashMap<Integer, User> playerMap = se.getPlayerMap();
+					HashMap<Integer, String> playerMap = se.getPlayerMap();
 					for (Integer i : players) {
 						if (!se.getAiPlayers().contains(i)) {
 							if (playerMap.containsKey(i)) {
-								playerString += playerMap.get(i).getNick() + " ";
+								playerString += playerMap.get(i) + " ";
 							} else {
 								playerString += i+" ";
 							}
@@ -267,8 +283,26 @@ public class StarsHandler extends ListenerAdapter {
 				scanner.next();
 				if (scanner.hasNextInt()) {
 					int p = scanner.nextInt();
-					se.mapPlayer(p, event.getUser());
+					se.mapPlayer(p, event.getUser().getNick());
 					event.respond(event.getUser().getNick()+" has been mapped to player "+p+".");
+
+					//save state to props
+					String saver = "";
+					HashMap<Integer, String> playerMap = se.getPlayerMap();
+					for (Integer i : playerMap.keySet()) {
+					    saver = saver + i + ":" + playerMap.get(i) + ",";
+					}
+					if (saver.length()>0) {
+					    saver = saver.substring(0, saver.length()-1);
+					}
+					props.setProperty("stars_player_map", saver);
+					
+					try {
+						props.store(new FileOutputStream("swagmower.properties"), null);
+					} catch (IOException ioe) {
+						event.respond("There was an error writing to the filesystem.");
+					}
+
 				} else if (scanner.hasNext("purge")) {
 					se.purgePlayerMap();
 					event.respond("You have unmapped all playeers.");
@@ -347,11 +381,11 @@ public class StarsHandler extends ListenerAdapter {
 					}
 					year +=2400;
 				 	String playerString = "";
-					HashMap<Integer, User> playerMap = se.getPlayerMap();
+					HashMap<Integer, String> playerMap = se.getPlayerMap();
 					for (Integer i : players) {
 						if (!se.getAiPlayers().contains(i)) {
 							if (playerMap.containsKey(i)) {
-								playerString += playerMap.get(i).getNick() + " ";
+								playerString += playerMap.get(i) + " ";
 							} else {
 								playerString += i+" ";
 							}

@@ -32,6 +32,7 @@ public class StarsEngine implements Runnable {
 	private String SNSARN;
 	private String AWSAccessKey;
 	private String AWSSecretKey;
+	private String tellPreddARN;
 	private Boolean SNSOnSwitch;
 
 	public StarsEngine(PircBotX bot, Properties props) {
@@ -94,7 +95,8 @@ public class StarsEngine implements Runnable {
 		AWSAccessKey = props.getProperty("aws_access_key");;
 		AWSSecretKey = props.getProperty("aws_secret_key");
 		SNSARN = props.getProperty("sns_arn");
-		if (AWSAccessKey == null || AWSSecretKey == null || SNSARN == null || AWSAccessKey.equals("") || AWSSecretKey.equals("") || SNSARN.equals("")) {
+		tellPreddARN = props.getProperty("tell_predd_arn");
+		if (AWSAccessKey == null || AWSSecretKey == null || SNSARN == null || tellPreddARN == null || AWSAccessKey.equals("") || AWSSecretKey.equals("") || SNSARN.equals("") || tellPreddARN.equals("")) {
 			return false;
 		} else {
 			return true;
@@ -165,6 +167,16 @@ public class StarsEngine implements Runnable {
 		onSwitch = false;
 	}
 
+	public boolean tellPredd(String message) {
+	    if (SNSOnSwitch) {
+		SNSHelper.publish(AWSAccessKey, AWSSecretKey, tellPreddARN, message);
+		return true;
+	    } else {
+		return false;
+	    }
+	}
+
+
 	public void SNSSubscribe(String s) {
 	    SNSHelper.subscribe(AWSAccessKey, AWSSecretKey, SNSARN, s);
 	}
@@ -198,8 +210,17 @@ public class StarsEngine implements Runnable {
 							System.out.println("StarsEngine: year has advanced.");
 
 							bot.sendMessage(channel, "The year is now "+(newState.getYear()+2400)+".  Your turn is ready.");
+							String pagers = "";
+							for (int i : playerMap.keySet()) {
+								if (!aiPlayers.contains(i)) {
+								    pagers += playerMap.get(i) + " ";
+								}
+							}
+							bot.sendMessage(channel, "Paging misters " + pagers);
+
 							if (SNSOnSwitch) {
 							    SNSHelper.publish(AWSAccessKey, AWSSecretKey, SNSARN, "The year is now "+(newState.getYear()+2400)+".  Your turn is ready.");
+
 							}
 						} else if (flipped.size() > 0) {
 							System.out.println("StarsEngine: flipped size greater than 0");

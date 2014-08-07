@@ -130,7 +130,7 @@ public class StarsHandler extends ListenerAdapter {
 					se.unmapPlayer(p);
 					event.respond("Player "+p+"  has been unmapped.");
 				} else {
-					event.respond("Give me a number and I'll unmap a player slot. Don't abuse this.");0
+					event.respond("Give me a number and I'll unmap a player slot. Don't abuse this.");
 				}
 			} else if (scanner.hasNext("init") || scanner.hasNext("on")) {
 				if (se.init()) {
@@ -212,6 +212,22 @@ public class StarsHandler extends ListenerAdapter {
 				}
 
 			}
+		}
+		if (scanner.hasNext("!tellpredd")) {
+			if (!pm.isAllowed("!tellpredd",event.getUser(),event.getChannel())) {
+				event.respond("Sorry, only ops can tell predd.  For now.");
+				return;
+			}
+		    scanner.next();
+		    if (scanner.hasNext()) {
+			if (se.tellPredd(command.substring(11))) {
+			    event.respond("I told 'im.");
+			} else {
+			    event.respond("He ain't listening.");
+			}
+		    } else {
+			event.respond("What am I telling him exactly?");
+		    }
 		}
 	}
 	public void onPrivateMessage(PrivateMessageEvent event) {

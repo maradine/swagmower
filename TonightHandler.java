@@ -199,11 +199,7 @@ public class TonightHandler extends ListenerAdapter {
 				event.respond("State destroyed.");
 			
 			
-			} else if (scanner.hasNext()) { //unrecognized verb
-				event.respond("Valid !tonight verbs include 'in' and 'out'.  ex. \"!tonight in ps2\"");
-			
-			} else {
-				//default output, show what's up tonight
+			} else if (scanner.hasNext("all")) { 
 				event.respond("TONIGHT ON #FKPK: ");
 				ArrayList<String> titles = te.getRegisteredTitles();
 				Boolean nothingPreventer = false;
@@ -221,6 +217,33 @@ public class TonightHandler extends ListenerAdapter {
 							nothingPreventer = true;
 						}
 					}
+				}
+				if (!nothingPreventer) {
+					event.respond("NOOOOOOTHIIIIIIIIIIING.");
+				}
+			
+			
+			
+			} else if (scanner.hasNext()) { //unrecognized verb
+				event.respond("Valid !tonight verbs include 'in' and 'out'.  ex. \"!tonight in ps2\"");
+			
+			} else {
+				//default output, show what's up tonight
+				ArrayList<String> titles = te.getRegisteredTitles();
+				Boolean nothingPreventer = false;
+				if (titles.size() > 0) {
+					ArrayList<User> users = te.getInUsers(titles.get(0));
+					int size = users.size();
+					String userString="";
+					for (User u : users) {
+						userString += u.getNick()+", ";
+					}
+					if (size > 0) {
+						userString = userString.substring(0,userString.length()-2);
+						event.respond("TONIGHT ON #FKPK: "+size+" in for "+titles.get(0)+": "+userString);
+						nothingPreventer = true;
+					}
+					
 				}
 				if (!nothingPreventer) {
 					event.respond("NOOOOOOTHIIIIIIIIIIING.");

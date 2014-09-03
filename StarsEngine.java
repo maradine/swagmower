@@ -58,6 +58,7 @@ public class StarsEngine implements Runnable {
 		gamePrefix = props.getProperty("stars_game_prefix");
 		initAi();
 		initMap();
+		firstRun=true;
 		if (appKey == null || appSecret == null || accessToken == null || appKey.equals("") || appSecret.equals("") || accessToken.equals("")) {
 			return false;
 		} else if (gamePath == null || gamePrefix == null || gamePath.equals("") || gamePrefix.equals("")) {

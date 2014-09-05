@@ -142,6 +142,9 @@ public class Swagmower extends ListenerAdapter {
 		//link general command handler
 		bot.getListenerManager().addListener(new GeneralHandler(bot));
 	
+		//link lolback handler
+		bot.getListenerManager().addListener(new LolbackHandler(bot, props));
+		
 		//link speech handler
 		bot.getListenerManager().addListener(new SpeechHandler(bot,ircChannel));
 

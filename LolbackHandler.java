@@ -165,7 +165,7 @@ public class LolbackHandler extends ListenerAdapter {
 					lockout = 0L;
 				}
 				if (Calendar.getInstance().getTimeInMillis() < lockout) {
-					System.out.println("Son, you're still locked out.");
+					event.respond("Son, you're still locked out.");
 					return;
 				}
 				token = scanner.next();

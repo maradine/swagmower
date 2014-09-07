@@ -44,8 +44,10 @@ public class GeneralHandler extends ListenerAdapter {
 						try {
 							bot.shutdown(true);
 							Thread.sleep(5000L);
-						} catch (Exception e) {}
-						System.exit(0);
+						} catch (Exception e) {
+						}finally {
+							System.exit(0);
+						}
 					}
 				} else {
 					event.respond("You need to call me by name.  It's crowded in here.");

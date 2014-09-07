@@ -160,6 +160,14 @@ public class LolbackHandler extends ListenerAdapter {
 					event.respond(output.get("exceptioncount")+" exceptions reported during file handling.");
 				}
 			} else if (scanner.hasNext()) {
+				
+				//first exit - are we in cooldown?
+				if (magicWord == null) {
+					event.respond("Still in cooldown from last lolback.");
+					return;
+				}
+				
+				// second exit - is user locked out?
 				Long lockout = lockouts.get(event.getUser());
 				if (lockout == null) {
 					lockout = 0L;
@@ -168,6 +176,7 @@ public class LolbackHandler extends ListenerAdapter {
 					event.respond("Son, you're still locked out.");
 					return;
 				}
+				
 				token = scanner.next();
 				if (token.equals(magicWord)) {
 					Long diff = Calendar.getInstance().getTimeInMillis() - inceptionTime;

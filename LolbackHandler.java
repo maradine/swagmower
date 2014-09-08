@@ -192,6 +192,8 @@ public class LolbackHandler extends ListenerAdapter {
 					event.respond("DING. "+event.getUser().getNick()+" wins the lolback for "+score+" points, putting them at "+newScore+" points. The active category was \""+activeCategory+"\".");
 					magicWord = null;
 					activeCategory = null;
+					inceptionTime = Calendar.getInstance().getTimeInMillis();
+					messagesSince = 0;
 				} else {
 					Long now = Calendar.getInstance().getTimeInMillis();
 					Long then = now + 3600000L;
@@ -329,7 +331,7 @@ public class LolbackHandler extends ListenerAdapter {
 					return;
 				} else {
 					event.respond("Current magic word is \""+magicWord+"\".  active category is \""+activeCategory+"\".");
-					event.respond("Message count at "+messagesSince+"/"+messageThreshhold+". Timer at "+Calendar.getInstance().getTimeInMillis()+"/"+inceptionTime+timeThreshhold+".");
+					event.respond("Message count at "+messagesSince+"/"+messageThreshhold+". Timer at "+Calendar.getInstance().getTimeInMillis()+"/"+(inceptionTime+timeThreshhold)+".");
 				}
 
 			}

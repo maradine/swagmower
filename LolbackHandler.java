@@ -134,6 +134,7 @@ public class LolbackHandler extends ListenerAdapter {
 
 	public void onMessage(MessageEvent event) {
 
+		String channel = props.getProperty("irc_channel");
 		String command = event.getMessage();
 		String commandLower = command.toLowerCase();
 		
@@ -142,12 +143,18 @@ public class LolbackHandler extends ListenerAdapter {
 		
 		if (token.equals("!lolback")) {
 
-			if (scanner.hasNext("score")) {
-					Long currentScore = scoreTable.get(event.getUser());
-					if (currentScore == null) {
-						currentScore = 0L;
+			if (scanner.hasNext("score") || scanner.hasNext("scores")) {
+					for (User u : scoreTable.keySet()) {
+						Long s = scoreTable.get(u);
+						event.respond("User "+u.getNick()+" has "+s+" points.");
 					}
-					event.respond("You have "+currentScore+" points.");
+			
+			} else if (scanner.hasNext("cats") || scanner.hasNext("categories")) {
+					String out = "";
+					for (String s : wordpile.keySet()) {
+						out += s+" ";
+					}
+					event.respond("I currently scan for words in the following categories: "+out);
 			
 			} else if (scanner.hasNext("reload")) {
 				if (!pm.isAllowed(command,event.getUser(),event.getChannel())) {
@@ -289,7 +296,8 @@ public class LolbackHandler extends ListenerAdapter {
 
 						for (String word : wordpile.get(activeCategory)) {
 							if (wordtoken.equals(word) && !wordtoken.equals(magicWord) && !done) { //we have a hit
-								event.respond("YOU DO GO ON MR. "+event.getUser().getNick().toUpperCase());
+								bot.sendMessage(channel, "YOU DO GO ON MR. "+event.getUser().getNick().toUpperCase()); 
+								//event.respond("YOU DO GO ON MR. "+event.getUser().getNick().toUpperCase());
 								done = true;
 							}
 						}
@@ -330,6 +338,8 @@ public class LolbackHandler extends ListenerAdapter {
 					event.respond("Sorry, you do not have permission to execute this command.");
 					return;
 				} else {
+					String channel = props.getProperty("irc_channel");
+					bot.sendMessage(channel, event.getUser().getNick() + "called a PM debug command.");
 					event.respond("Current magic word is \""+magicWord+"\".  active category is \""+activeCategory+"\".");
 					event.respond("Message count at "+messagesSince+"/"+messageThreshhold+". Timer at "+Calendar.getInstance().getTimeInMillis()+"/"+(inceptionTime+timeThreshhold)+".");
 				}

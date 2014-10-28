@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Calendar;
@@ -34,10 +35,12 @@ public class LolbackHandler extends ListenerAdapter {
 
 	private long inceptionTime;
 	private long timeThreshhold;
+	private long baseTimeThreshhold;
 	private int messagesSince;
 	private int messageThreshhold;
 	private String activeCategory;
 	private String magicWord;
+	private String injector;
 	private Boolean goSwitch;
 	private Boolean debug;
 
@@ -52,16 +55,18 @@ public class LolbackHandler extends ListenerAdapter {
 		this.wordpile = new HashMap<String, List<String>>();
 		this.rand = new Random();
 		this.inceptionTime = 0L;
-		this.timeThreshhold = 1800000;
+		this.baseTimeThreshhold = 900000L;
+		this.timeThreshhold = randomTimeThreshhold();
 		//this.timeThreshhold = 1000;
 		this.messagesSince = 0;
 		this.messageThreshhold = 20;
 		//this.messageThreshhold = 5;
 		this.activeCategory = null;
 		this.magicWord = null;
+		this.injector = null;
 		this.debug = true;
-		this.scoreTable = new HashMap<User, Long>(); 
-		this.lockouts = new HashMap<User, Long>(); 
+		this.scoreTable = new ConcurrentHashMap<User, Long>(); 
+		this.lockouts = new ConcurrentHashMap<User, Long>(); 
 
 		goSwitch = initLolback();
 	}
@@ -87,6 +92,11 @@ public class LolbackHandler extends ListenerAdapter {
 		inceptionTime = Calendar.getInstance().getTimeInMillis();
 		messagesSince = 0;
 	    return true;
+	}
+
+	private Long randomTimeThreshhold() {
+		return Math.round( baseTimeThreshhold + Math.abs(baseTimeThreshhold * rand.nextGaussian()));
+
 	}
 
 	private Map<String,Integer> populateWordpile() {
@@ -149,6 +159,16 @@ public class LolbackHandler extends ListenerAdapter {
 						event.respond("User "+u.getNick()+" has "+s+" points.");
 					}
 			
+			} else if (scanner.hasNext("rules")) {
+					event.respond("PM");
+					bot.sendMessage(event.getUser(), "THESE ARE THE RULES.");
+					bot.sendMessage(event.getUser(), "AFTER AN AMOUNT OF TIME PASSES I WILL WATCH FOR WORDS.");
+					bot.sendMessage(event.getUser(), "WHEN I SEE A WORD I LIKE I WILL PICK IT. YOU WILL NOT KNOW I HAVE DONE SO.");
+					bot.sendMessage(event.getUser(), "THE KINDS OF WORDS I LIKE ARE VISIBLE VIA !lolback cats.");
+					bot.sendMessage(event.getUser(), "WHEN I HAVE PICKED A WORD I WILL WAIT FOR A BIT.  THEN I WILL LISTEN.");
+					bot.sendMessage(event.getUser(), "IF I SEE A WORD IN THE SAME CATEGORY AS THE WORD I HAVE PICKED, I WILL SAY SOMETHING.");
+					bot.sendMessage(event.getUser(), "IF YOU THINK YOU KNOW THE WORD I PICKED !lolback");
+			
 			} else if (scanner.hasNext("cats") || scanner.hasNext("categories")) {
 					String out = "";
 					for (String s : wordpile.keySet()) {
@@ -188,19 +208,24 @@ public class LolbackHandler extends ListenerAdapter {
 				if (token.equals(magicWord)) {
 					Long diff = Calendar.getInstance().getTimeInMillis() - inceptionTime;
 					Long score = diff / 1000;
-					Long currentScore = scoreTable.get(event.getUser());
-					Long newScore;
-					if (currentScore !=null) {
-						newScore = score + currentScore;
-					} else {
-						newScore = score;
+					Long newScore = score;
+					
+					//iterate existing users in score table for one with an equal nick
+					for (User u : scoreTable.keySet()) {
+						if (u.getNick().equals(event.getUser().getNick())) {
+							newScore += scoreTable.get(u);
+							scoreTable.remove(u);
+						}
 					}
 					scoreTable.put(event.getUser(), newScore);
+
 					event.respond("DING. "+event.getUser().getNick()+" wins the lolback for "+score+" points, putting them at "+newScore+" points. The active category was \""+activeCategory+"\".");
 					magicWord = null;
 					activeCategory = null;
 					inceptionTime = Calendar.getInstance().getTimeInMillis();
+					timeThreshhold = randomTimeThreshhold();
 					messagesSince = 0;
+					lockouts = new ConcurrentHashMap<User, Long>(); 
 				} else {
 					Long now = Calendar.getInstance().getTimeInMillis();
 					Long then = now + 3600000L;
@@ -260,10 +285,12 @@ public class LolbackHandler extends ListenerAdapter {
 								if (wordtoken.equals(word) && !done) { //we have a hit
 									magicWord = wordtoken;
 									activeCategory = cat;
+									injector = event.getUser().getNick();
 									done = true;
 									inceptionTime = Calendar.getInstance().getTimeInMillis();
+									timeThreshhold = randomTimeThreshhold();
 									messagesSince = 0;
-									System.out.println(magicWord+" is now the magic word");
+									//System.out.println(magicWord+" is now the magic word");
 								}
 							}
 						}
@@ -295,7 +322,8 @@ public class LolbackHandler extends ListenerAdapter {
 					for (String wordtoken : tokenList) {
 
 						for (String word : wordpile.get(activeCategory)) {
-							if (wordtoken.equals(word) && !wordtoken.equals(magicWord) && !done) { //we have a hit
+							//if (wordtoken.equals(word) && !wordtoken.equals(magicWord) && !done) { //we have a hit
+							if (wordtoken.equals(word) && !done) { //we have a hit
 								bot.sendMessage(channel, "YOU DO GO ON MR. "+event.getUser().getNick().toUpperCase()); 
 								//event.respond("YOU DO GO ON MR. "+event.getUser().getNick().toUpperCase());
 								done = true;
@@ -323,6 +351,15 @@ public class LolbackHandler extends ListenerAdapter {
 					}
 					event.respond("You have "+currentScore+" points.");
 			
+			} else if (scanner.hasNext("rules")) {
+					event.respond("THESE ARE THE RULES.");
+					event.respond("AFTER AN AMOUNT OF TIME PASSES I WILL WATCH FOR WORDS.");
+					event.respond("WHEN I SEE A WORD I LIKE I WILL PICK IT. YOU WILL NOT KNOW I HAVE DONE SO.");
+					event.respond("THE KINDS OF WORDS I LIKE ARE VISIBLE VIA !lolback cats.");
+					event.respond("WHEN I HAVE PICKED A WORD I WILL WAIT FOR A BIT.  THEN I WILL LISTEN.");
+					event.respond("IF I SEE A WORD IN THE SAME CATEGORY AS THE WORD I HAVE PICKED, I WILL SAY SOMETHING.");
+					event.respond("IF YOU THINK YOU KNOW THE WORD I PICKED !lolback");
+			
 			} else if (scanner.hasNext("reload")) {
 				if (!pm.isAllowed("!lolback reload",event.getUser(),props)) {
 					event.respond("Sorry, you do not have permission to execute this command.");
@@ -339,7 +376,10 @@ public class LolbackHandler extends ListenerAdapter {
 					return;
 				} else {
 					String channel = props.getProperty("irc_channel");
-					bot.sendMessage(channel, event.getUser().getNick() + "called a PM debug command.");
+					Long now = Calendar.getInstance().getTimeInMillis();
+					Long then = now + 3600000000L;
+					lockouts.put(event.getUser(), then);
+					bot.sendMessage(channel, event.getUser().getNick() + " called a PM debug command and is locked out until the next lolback starts.");
 					event.respond("Current magic word is \""+magicWord+"\".  active category is \""+activeCategory+"\".");
 					event.respond("Message count at "+messagesSince+"/"+messageThreshhold+". Timer at "+Calendar.getInstance().getTimeInMillis()+"/"+(inceptionTime+timeThreshhold)+".");
 				}

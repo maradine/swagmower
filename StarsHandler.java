@@ -213,7 +213,7 @@ public class StarsHandler extends ListenerAdapter {
 
 			}
 		}
-		if (scanner.hasNext("!tellpredd")) {
+		/* if (scanner.hasNext("!tellpredd")) {
 			if (!pm.isAllowed("!tellpredd",event.getUser(),event.getChannel())) {
 				event.respond("Sorry, only ops can tell predd.  For now.");
 				return;
@@ -228,7 +228,7 @@ public class StarsHandler extends ListenerAdapter {
 		    } else {
 			event.respond("What am I telling him exactly?");
 		    }
-		}
+		}*/
 	}
 	public void onPrivateMessage(PrivateMessageEvent event) {
 		String command = event.getMessage();

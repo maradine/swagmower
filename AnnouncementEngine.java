@@ -13,7 +13,7 @@ public class AnnouncementEngine implements Runnable {
 		content = new LinkedList<String>();
 		this.bot = bot;
 		this.channel = channel;
-		onSwitch = false;
+		onSwitch = true;
 		interval = 3600000L;
 	}
 

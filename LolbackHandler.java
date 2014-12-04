@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.util.Scanner;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,7 @@ import java.util.Random;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Arrays;
+import java.text.NumberFormat;
 
 public class LolbackHandler extends ListenerAdapter {
 
@@ -154,9 +156,17 @@ public class LolbackHandler extends ListenerAdapter {
 		if (token.equals("!lolback")) {
 
 			if (scanner.hasNext("score") || scanner.hasNext("scores")) {
-					for (User u : scoreTable.keySet()) {
+					
+					LolbackElementComparator lec = new LolbackElementComparator(scoreTable);
+					ArrayList<User> alu = new ArrayList<User>(scoreTable.keySet());
+					java.util.Collections.sort(alu, lec);
+					
+					NumberFormat myFormat = NumberFormat.getInstance();
+					myFormat.setGroupingUsed(true);
+
+					for (User u : alu) {
 						Long s = scoreTable.get(u);
-						event.respond("User "+u.getNick()+" has "+s+" points.");
+						event.respond("User "+u.getNick()+" has "+myFormat.format(s)+" points.");
 					}
 			
 			} else if (scanner.hasNext("rules")) {
@@ -169,7 +179,7 @@ public class LolbackHandler extends ListenerAdapter {
 					bot.sendMessage(event.getUser(), "IF I SEE A WORD IN THE SAME CATEGORY AS THE WORD I HAVE PICKED, I WILL SAY SOMETHING.");
 					bot.sendMessage(event.getUser(), "IF YOU THINK YOU KNOW THE WORD I PICKED !lolback");
 			
-			} else if (scanner.hasNext("cats") || scanner.hasNext("categories")) {
+			} else if (scanner.hasNext("cats") || scanner.hasNext("list") || scanner.hasNext("categories")) {
 					String out = "";
 					for (String s : wordpile.keySet()) {
 						out += s+" ";

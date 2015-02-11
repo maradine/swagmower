@@ -65,6 +65,9 @@ public class GeneralHandler extends ListenerAdapter {
 				}
 				event.respond("Properties reloaded from file.  I hope you know what the fuck you are doing.");
 			}
+		} else if (token.equals("star citizen")) {
+				event.respond("http://www.youtube.com/watch?v=blPpnnSOiwk");
+		
 		}
 					
 

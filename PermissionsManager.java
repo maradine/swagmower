@@ -10,7 +10,7 @@ public class PermissionsManager {
 	private static String owner;
 
 	private PermissionsManager(String setowner) {
-		locked = true;
+		locked = false;
 		this.owner = setowner;
 	}
 

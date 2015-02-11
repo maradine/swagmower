@@ -102,6 +102,7 @@ public class LolbackHandler extends ListenerAdapter {
 	}
 
 	private Map<String,Integer> populateWordpile() {
+		wordpile = new HashMap<String, List<String>>();
 		int catCount = 0;
 		int wordCount = 0;
 		int exceptionCount = 0;

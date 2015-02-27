@@ -126,12 +126,12 @@ public class Swagmower extends ListenerAdapter {
 		bot.getListenerManager().addListener(new TonightHandler(bot, te, props));
 		
 		//set up stars engine
-		StarsEngine se = new StarsEngine(bot, props);
-		Thread st = new Thread(se, "st");
-		st.start();
+		//StarsEngine se = new StarsEngine(bot, props);
+		//Thread st = new Thread(se, "st");
+		//st.start();
 
 		//link stars handler
-		bot.getListenerManager().addListener(new StarsHandler(se, props));
+		//bot.getListenerManager().addListener(new StarsHandler(se, props));
 		
 		//set up presence engine
 		TS3PresenceEngine pe = new TS3PresenceEngine(bot, ircChannel, props);

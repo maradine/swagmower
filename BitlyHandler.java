@@ -56,6 +56,7 @@ public class BitlyHandler extends ListenerAdapter {
 				} catch (MalformedURLException e) {
 				} catch (com.rosaloves.bitlyj.BitlyException e) {
 					event.respond("Bitly thinks we're full of shit and won't shorten.  Someone yell at maradine to check the logs.");
+					System.out.println(e);
 				}
 			}
 

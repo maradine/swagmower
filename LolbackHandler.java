@@ -46,6 +46,8 @@ public class LolbackHandler extends ListenerAdapter {
 	private Boolean goSwitch;
 	private Boolean debug;
 
+	private String originalMessage;
+
 	private Map<User,Long> scoreTable;
 	private Map<User,Long> lockouts;
 
@@ -231,6 +233,7 @@ public class LolbackHandler extends ListenerAdapter {
 					scoreTable.put(event.getUser(), newScore);
 
 					event.respond("DING. "+event.getUser().getNick()+" wins the lolback for "+score+" points, putting them at "+newScore+" points. The active category was \""+activeCategory+"\".");
+					event.respond("Message as seeded by "+injector+": " + originalMessage);
 					magicWord = null;
 					activeCategory = null;
 					inceptionTime = Calendar.getInstance().getTimeInMillis();
@@ -262,7 +265,8 @@ public class LolbackHandler extends ListenerAdapter {
 				if (diff >= timeThreshhold && messagesSince >= messageThreshhold) { //we're out of cooldown and in the market to pick a magic word
 					
 					//get the canonical message from the event
-					String message = event.getMessage().toLowerCase().trim();
+					originalMessage = event.getMessage();
+					String message = originalMessage.toLowerCase().trim();
 					
 					//carve it up
 					String[] tokens = message.split("\\W+");

@@ -148,6 +148,8 @@ public class Swagmower extends ListenerAdapter {
 		//link speech handler
 		bot.getListenerManager().addListener(new SpeechHandler(bot,ircChannel));
 
+		//link url shortener
+		bot.getListenerManager().addListener(new BitlyHandler(bot, props));
 	}
 }
 

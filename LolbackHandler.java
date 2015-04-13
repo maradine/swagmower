@@ -47,6 +47,8 @@ public class LolbackHandler extends ListenerAdapter {
 	private Boolean debug;
 
 	private String originalMessage;
+	
+	private float fishingThreshhold = .66f;
 
 	private Map<User,Long> scoreTable;
 	private Map<User,Long> lockouts;
@@ -112,31 +114,31 @@ public class LolbackHandler extends ListenerAdapter {
 		File[] filesList = dir.listFiles();
 		for (File file : filesList) {
 		    if (file.isFile()) {
-			String filename = file.getName();
-			if (filename.endsWith(".lolback.category")){
-			    String category = filename.substring(0,filename.length()-17);
-			    try {
-			    	BufferedReader br = new BufferedReader(new FileReader(file));
-			    	List<String> words = new LinkedList<String>();
-			    	String line;
-			    	while ((line = br.readLine()) != null) {
-					if (line.trim().length() == 0) {
-				    	continue;
-					}
-					StringTokenizer st = new StringTokenizer(line);
-					words.add(st.nextToken());
-					wordCount++;
-			    	}
-			    	wordpile.put(category, words);
-			    	catCount++;
-			    } catch (FileNotFoundException fnfe) {
-				System.out.println("FileNotFoundException: "+fnfe);
-				exceptionCount++;
-			    } catch (IOException ioe) {
-				System.out.println("IOException: "+ioe);
-				exceptionCount++;
-			    }
-			}
+				String filename = file.getName();
+				if (filename.endsWith(".lolback.category")){
+				    String category = filename.substring(0,filename.length()-17);
+				    try {
+				    	BufferedReader br = new BufferedReader(new FileReader(file));
+				    	List<String> words = new LinkedList<String>();
+				    	String line;
+				    	while ((line = br.readLine()) != null) {
+							if (line.trim().length() == 0) {
+					    		continue;
+							}
+							StringTokenizer st = new StringTokenizer(line);
+							words.add(st.nextToken());
+							wordCount++;
+			    		}
+			    		wordpile.put(category, words);
+				    	catCount++;
+				    } catch (FileNotFoundException fnfe) {
+						System.out.println("FileNotFoundException: "+fnfe);
+						exceptionCount++;
+			    	} catch (IOException ioe) {
+						System.out.println("IOException: "+ioe);
+						exceptionCount++;
+				    }
+				}
 		    }
 		}
 		Map<String,Integer> output = new HashMap<String, Integer>();
@@ -145,6 +147,37 @@ public class LolbackHandler extends ListenerAdapter {
 		output.put("exceptioncount", exceptionCount);
 		return output;
 	}
+
+	private boolean isMessageFishing(String message, float threshhold) {
+		message = message.toLowerCase();
+		//carve it up
+		String[] tokens = message.split("\\W+");
+		//turn it into a list
+		List<String> tokenList = Arrays.asList(tokens);
+		int totalTokens = 0;
+		int hitTokens = 0;
+		for (String token : tokenList) {
+			totalTokens++;
+			foundit:
+			for (List<String> list : wordpile.values()){
+				for (String s : list) {
+					if (token.equals(s)) {
+						hitTokens++;
+						break foundit;
+					}
+				}
+			}
+		}
+		float percent = hitTokens/totalTokens;
+		if (percent > threshhold) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
+
 
 
 	public void onMessage(MessageEvent event) {
@@ -201,25 +234,30 @@ public class LolbackHandler extends ListenerAdapter {
 				}
 			} else if (scanner.hasNext()) {
 				
-				//first exit - are we in cooldown?
-				if (magicWord == null) {
-					event.respond("Still in cooldown from last lolback.");
+				//first exit - are we in a cooldown?
+				long diff = Calendar.getInstance().getTimeInMillis() - inceptionTime;
+				if (diff < timeThreshhold || messagesSince < messageThreshhold || magicWord == null) {
+					Long now = Calendar.getInstance().getTimeInMillis();
+					Long then = now + 3600000L;
+					lockouts.put(event.getUser(), then);
+					event.respond("Still in cooldown from last lolback.  ONE HOUR DUNGEON.");
 					return;
 				}
-				
+
+
 				// second exit - is user locked out?
 				Long lockout = lockouts.get(event.getUser());
 				if (lockout == null) {
 					lockout = 0L;
 				}
 				if (Calendar.getInstance().getTimeInMillis() < lockout) {
-					event.respond("Son, you're still locked out.");
+					event.respond("STILL IN DUNGEON.");
 					return;
 				}
 				
 				token = scanner.next();
 				if (token.equals(magicWord)) {
-					Long diff = Calendar.getInstance().getTimeInMillis() - inceptionTime;
+					diff = Calendar.getInstance().getTimeInMillis() - inceptionTime;
 					Long score = diff / 1000;
 					Long newScore = score;
 					
@@ -242,9 +280,9 @@ public class LolbackHandler extends ListenerAdapter {
 					lockouts = new ConcurrentHashMap<User, Long>(); 
 				} else {
 					Long now = Calendar.getInstance().getTimeInMillis();
-					Long then = now + 3600000L;
+					Long then = now + 1800000L;
 					lockouts.put(event.getUser(), then);
-					event.respond("NOPE.  Locked out for an hour.");
+					event.respond("NOPE.  THIRTY MINUTES DUNGEON.");
 				}
 			} else {
 				event.respond("generic status message");
@@ -256,6 +294,15 @@ public class LolbackHandler extends ListenerAdapter {
 
 			//clock one message on the counter
 			messagesSince++;
+
+			//check for blatant fishing
+			if (isMessageFishing(event.getMessage(), fishingThreshhold)) {
+				event.respond("NICE TRY, BUB.  ONE HOUR DUNGEON.");
+				Long now = Calendar.getInstance().getTimeInMillis();
+				Long then = now + 3600000L;
+				lockouts.put(event.getUser(), then);
+				return;
+			}
 
 			//first: are we missing a magic word?
 			if (magicWord == null) {

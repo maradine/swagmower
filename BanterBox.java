@@ -44,14 +44,29 @@ public class BanterBox extends ListenerAdapter {
 		} else if (command.startsWith("!preddance ") || command.equals("!preddance") || command.startsWith("!preddence ") || command.equals("!preddence")) {
 			event.respond("THIS IS A POEM ABOUT PREDD:");
 			event.respond("");
-			event.respond("winter's cold wind cuts /");
-			event.respond("we may perish ere spring comes /");
-			event.respond("i'm wearing clown shoes");
+			event.respond("i never attend /");
+			event.respond("your collective labors bore /");
+			event.respond("autumn in the bronx");
 		} else if (command.startsWith("!pokemon") || command.equals("!pokemon")) {
 			event.respond("http://images.wikia.com/pokemontowerdefense/images/9/96/Pokemon-list.png");
 		
 		} else if (command.startsWith("!pokemans") || command.equals("!pokemams")) {
 			event.respond("http://images.wikia.com/pokemontowerdefense/images/9/96/Pokemon-list.png");
+		
+		} else if (command.contains("nuestra") || command.contains("fiesta")){
+			event.getBot().sendMessage(event.getChannel(), "ESTA ES NUESTRA FIESTA");
+		
+		} else if (command.contains("gabba")) {
+			event.getBot().sendMessage(event.getChannel(), "GABBA GABBA GABBA HEY");
+		
+		} else if (command.contains("uno dos tres cuatro") || command.contains("un dos tres cuatro")) {
+			event.getBot().sendMessage(event.getChannel(), "DEET DEET DEET DEET DEET DEET DEET");
+			event.getBot().sendMessage(event.getChannel(), "DEET DEET DEET DEET DEET DEET DEET");
+			event.getBot().sendMessage(event.getChannel(), "DEET DEET DEET DEET DEET DEET DEET");
+			event.getBot().sendMessage(event.getChannel(), "DEET DEET DEET DEET DEET DEET DEET");
+		
+		} else if (command.contains("on fire")) {
+			event.respond("SIR YOU ARE ON FIRE");
 		
 		} else {
 			boolean returnFire = false;
